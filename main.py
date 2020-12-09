@@ -1,6 +1,8 @@
 from ursina import Ursina, camera, window, Light, color, scene, Entity, held_keys, time, Mesh, Vec3, EditorCamera
 from ursina.scripts.generate_normals import generate_normals
 import numpy
+from scipy.spatial import Delaunay
+from typing import List, Tuple
 
 
 class Game(Ursina):
@@ -13,14 +15,31 @@ class Game(Ursina):
         Light(type='ambient', color=(0.5, 0.5, 0.5, 1))
         Light(type='directional', color=(0.5, 0.5, 0.5, 1), direction=(1, 1, 1))
 
+        ss = Surface([
+            Triangle(
+                Line(Point(0.0, 0.0, 0.0), Point(3.0, 4.0, 0.0)),
+                Line(Point(3.0, 4.0, 0.0), Point(-3.0, 4.0, 0.0)),
+                Line(Point(-3.0, 4.0, 0.0), Point(0.0, 0.0, 0.0))
+            ),
+            # Triangle(
+            #     Line(Point(0.0, 0.0, 0.0), Point(3.0, -4.0, 0.0)),
+            #     Line(Point(3.0, -4.0, 0.0), Point(-3.0, -4.0, 0.0)),
+            #     Line(Point(-3.0, -4.0, 0.0), Point(0.0, 0.0, 0.0))
+            # )
+        ])
         self.new_game()
-        verts = ((0, 0, 1), (3, 0, -1), (3, 3, 0.5), (0, 3, -1), (-3, 3, 1), (-3, 0, -0.5), (-3, -3, 0), (0, -3, 0), (3, -3, 0))
+        verts = (
+        (0, 0, 1), (3, 0, -1), (3, 3, 0.5), (0, 3, -1), (-3, 3, 1), (-3, 0, -0.5), (-3, -3, 0), (0, -3, 0), (3, -3, 0))
         tris = ((0, 1, 2), (0, 2, 3), (0, 3, 4), (0, 4, 5), (0, 5, 6), (0, 6, 7), (0, 7, 8), (0, 8, 1))
         norms = generate_normals(verts, triangles=tris)
 
         colors = (color.red, color.blue, color.lime, color.black, color.green, color.yellow, color.smoke, color.magenta)
-
-        self.surface = Entity(model=Mesh(vertices=verts, triangles=tris, normals=norms.tolist(), mode='line', colors=colors, thickness=3), scale=2)
+        # tri.simplices
+        ss.fraction()
+        a1, a2, a3 = ss.get_ursina_samples()
+        self.surface = Entity(
+            model=Mesh(vertices=a1, triangles=a2, normals=a3, mode='line', colors=colors, thickness=3),
+            scale=2)
         self.surface.model.colorize(smooth=True)
 
         EditorCamera()
@@ -38,6 +57,80 @@ class Game(Ursina):
 
     def input(self, key):
         super().input(key)
+
+    def get_midpoint(self):
+        pass
+
+
+class Point:
+    def __init__(self, x, y, z):
+        self.x = x
+        self.y = y
+        self.z = z
+
+
+class Line:
+    def __init__(self, p1: Point, p2: Point):
+        self.p1 = p1
+        self.p2 = p2
+
+    def midpoint(self):
+        return Point((self.p1.x + self.p2.x) / 2.0, (self.p1.y + self.p2.y) / 2.0, (self.p1.z + self.p2.z) / 2.0)
+
+
+class Triangle:
+    def __init__(self, line1: Line, line2: Line, line3: Line):
+        self.line1 = line1
+        self.line2 = line2
+        self.line3 = line3
+
+
+class Surface:
+    def __init__(self, triangles):
+        self.triangles = triangles
+
+    def get_ursina_samples(self) -> (tuple, tuple, tuple):
+        vertices = []
+        triangles = []
+
+        for i, triangle in enumerate(self.triangles):
+            triangles.append((i * 2 + i, i * 2 + i + 1, i * 2 + i + 2, i * 2 + i))
+            vertices.append((triangle.line1.p1.x, triangle.line1.p1.y, triangle.line1.p1.z))
+            vertices.append((triangle.line2.p1.x, triangle.line2.p1.y, triangle.line2.p1.z))
+            vertices.append((triangle.line3.p1.x, triangle.line3.p1.y, triangle.line3.p1.z))
+
+        return vertices, triangles, generate_normals(vertices, triangles=triangles).tolist()
+
+    def fraction(self):
+        new_triangles = []
+
+        for triangle in self.triangles:
+            p1 = triangle.line1.midpoint()
+            p2 = triangle.line2.midpoint()
+            p3 = triangle.line3.midpoint()
+
+            new_triangles.append(Triangle(
+                Line(Point(triangle.line1.p1.x, triangle.line1.p1.y, triangle.line1.p1.z), Point(p1.x, p1.y, p1.z)),
+                Line(Point(p1.x, p1.y, p1.z), Point(p3.x, p3.y, p3.z)),
+                Line(Point(p3.x, p3.y, p3.z), Point(triangle.line1.p1.x, triangle.line1.p1.y, triangle.line1.p1.z)),
+            ))
+            new_triangles.append(Triangle(
+                Line(Point(p1.x, p1.y, p1.z), Point(triangle.line2.p1.x, triangle.line2.p1.y, triangle.line2.p1.z)),
+                Line(Point(triangle.line2.p1.x, triangle.line2.p1.y, triangle.line2.p1.z), Point(p2.x, p2.y, p2.z)),
+                Line(Point(p2.x, p2.y, p2.z), Point(p1.x, p1.y, p1.z)),
+            ))
+            new_triangles.append(Triangle(
+                Line(Point(p2.x, p2.y, p2.z), Point(triangle.line3.p1.x, triangle.line3.p1.y, triangle.line3.p1.z)),
+                Line(Point(triangle.line3.p1.x, triangle.line3.p1.y, triangle.line3.p1.z), Point(p3.x, p3.y, p3.z)),
+                Line(Point(p3.x, p3.y, p3.z), Point(p2.x, p2.y, p2.z)),
+            ))
+            new_triangles.append(Triangle(
+                Line(Point(p3.x, p3.y, p3.z), Point(p1.x, p1.y, p1.z)),
+                Line(Point(p1.x, p1.y, p1.z), Point(p2.x, p2.y, p2.z)),
+                Line(Point(p2.x, p2.y, p2.z), Point(p3.x, p3.y, p3.z)),
+            ))
+
+        self.triangles = new_triangles
 
 
 if __name__ == '__main__':
