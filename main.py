@@ -1,5 +1,7 @@
 from ursina import Ursina, camera, window, Light, color, scene, Entity, held_keys, time, Mesh, Vec3, EditorCamera
 from ursina.scripts.generate_normals import generate_normals
+from numba import jit
+import math
 import numpy
 from scipy.spatial import Delaunay
 from typing import List, Tuple
@@ -26,11 +28,15 @@ class Game(Ursina):
 
         colors = (color.red, color.blue, color.lime, color.black, color.green, color.yellow, color.smoke, color.magenta)
 
-        for _ in range(6):
-            ss.fraction()
-        a1, a2, a3 = ss.get_ursina_samples()
+        # x_min, x_max, y_min, y_max, count, polygon
+        count = 10
+        a1 = generate_point(ss.triangles[0].min_x, ss.triangles[0].max_x, ss.triangles[0].min_y, ss.triangles[0].max_y,
+                            count, ((0.0, 0.0), (3.0, 4.0), (-3.0, 4.0)))
+        tri = Delaunay(a1)
+
+        # a1, a2, a3 = ss.get_ursina_samples()
         self.surface = Entity(
-            model=Mesh(vertices=a1, triangles=a2, normals=a3, mode='line', colors=colors, thickness=3),
+            model=Mesh(vertices=a1.tolist(), triangles=tri.simplices.tolist(), mode='line', colors=colors, thickness=3),
             scale=2)
         self.surface.model.colorize(smooth=False)
 
@@ -76,6 +82,30 @@ class Triangle:
         self.line1 = line1
         self.line2 = line2
         self.line3 = line3
+
+    @property
+    def min_x(self):
+        return min(self.line1.p1.x, self.line1.p2.x, self.line2.p1.x, self.line2.p2.x, self.line3.p1.x, self.line3.p2.x)
+
+    @property
+    def max_x(self):
+        return max(self.line1.p1.x, self.line1.p2.x, self.line2.p1.x, self.line2.p2.x, self.line3.p1.x, self.line3.p2.x)
+
+    @property
+    def min_y(self):
+        return min(self.line1.p1.y, self.line1.p2.y, self.line2.p1.y, self.line2.p2.y, self.line3.p1.y, self.line3.p2.y)
+
+    @property
+    def max_y(self):
+        return max(self.line1.p1.y, self.line1.p2.y, self.line2.p1.y, self.line2.p2.y, self.line3.p1.y, self.line3.p2.y)
+
+    @property
+    def min_z(self):
+        return min(self.line1.p1.z, self.line1.p2.z, self.line2.p1.z, self.line2.p2.z, self.line3.p1.z, self.line3.p2.z)
+
+    @property
+    def max_z(self):
+        return max(self.line1.p1.z, self.line1.p2.z, self.line2.p1.z, self.line2.p2.z, self.line3.p1.z, self.line3.p2.z)
 
 
 class Surface:
@@ -124,6 +154,53 @@ class Surface:
             ))
 
         self.triangles = new_triangles
+
+
+def generate_point(x_min, x_max, y_min, y_max, count, polygon):
+    """
+
+    :param x_min:
+    :param x_max:
+    :param y_min:
+    :param y_max:
+    :param count:
+    :param polygon:
+    :return:
+    """
+    i = 0
+    result = []
+
+    while i != count:
+        x = numpy.random.uniform(x_min, x_max, size=(1, 1))[0][0]
+        y = numpy.random.uniform(y_min, y_max, size=(1, 1))[0][0]
+
+        if ray_tracing(x, y, polygon):
+            result.append((x, y))
+            i += 1
+
+    return numpy.array(result)
+
+
+@jit(nopython=True)
+def ray_tracing(x, y, poly):
+    n = len(poly)
+    inside = False
+    p2x = 0.0
+    p2y = 0.0
+    xints = 0.0
+    p1x, p1y = poly[0]
+    for i in range(n+1):
+        p2x, p2y = poly[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xints = (y-p1y)*(p2x-p1x)/(p2y-p1y)+p1x
+                    if p1x == p2x or x <= xints:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside
 
 
 if __name__ == '__main__':
