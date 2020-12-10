@@ -38,8 +38,10 @@ class Game(Ursina):
 
         triangles = tri.simplices.tolist()
 
+        normals = generate_normals(vertices, triangles=triangles).tolist()
+
         self.surface = Entity(
-            model=Mesh(vertices=vertices, triangles=triangles, mode='line', colors=colors, thickness=3),
+            model=Mesh(vertices=vertices, triangles=triangles, normals=normals, colors=colors, thickness=3),
             scale=2)
         self.surface.model.colorize(smooth=False)
 
