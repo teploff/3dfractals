@@ -28,15 +28,18 @@ class Game(Ursina):
 
         colors = (color.red, color.blue, color.lime, color.black, color.green, color.yellow, color.smoke, color.magenta)
 
-        # x_min, x_max, y_min, y_max, count, polygon
-        count = 10
+        count = 40
         a1 = generate_point(ss.triangles[0].min_x, ss.triangles[0].max_x, ss.triangles[0].min_y, ss.triangles[0].max_y,
                             count, ((0.0, 0.0), (3.0, 4.0), (-3.0, 4.0)))
         tri = Delaunay(a1)
 
-        # a1, a2, a3 = ss.get_ursina_samples()
+        a1 = numpy.concatenate((a1, numpy.array([[numpy.random.uniform(-1, 1, size=(1, 1))[0][0]] for _ in range(len(a1))])), axis=1)
+        vertices = a1.tolist()
+
+        triangles = tri.simplices.tolist()
+
         self.surface = Entity(
-            model=Mesh(vertices=a1.tolist(), triangles=tri.simplices.tolist(), mode='line', colors=colors, thickness=3),
+            model=Mesh(vertices=vertices, triangles=triangles, mode='line', colors=colors, thickness=3),
             scale=2)
         self.surface.model.colorize(smooth=False)
 
@@ -168,7 +171,7 @@ def generate_point(x_min, x_max, y_min, y_max, count, polygon):
     :return:
     """
     i = 0
-    result = []
+    result = [point for point in polygon]
 
     while i != count:
         x = numpy.random.uniform(x_min, x_max, size=(1, 1))[0][0]
