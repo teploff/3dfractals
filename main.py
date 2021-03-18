@@ -1,4 +1,5 @@
 from ursina import Ursina, camera, window, Light, color, scene, Entity, held_keys, time, Mesh, Vec3, EditorCamera
+from ursina.light import DirectionalLight
 from ursina.scripts.generate_normals import generate_normals
 from numba import jit
 import math
@@ -12,38 +13,70 @@ class Game(Ursina):
         super().__init__()
         window.color = color.black
         window.fullscreen_size = 1920, 1080
-        window.fullscreen = True
+        window.fullscreen = False
 
         Light(type='ambient', color=(0.5, 0.5, 0.5, 1))
         Light(type='directional', color=(0.5, 0.5, 0.5, 1), direction=(1, 1, 1))
 
-        ss = Surface([
-            Triangle(
-                Line(Point(0.0, 0.0, 0.0), Point(3.0, 4.0, 0.0)),
-                Line(Point(3.0, 4.0, 0.0), Point(-3.0, 4.0, 0.0)),
-                Line(Point(-3.0, 4.0, 0.0), Point(0.0, 0.0, 0.0))
-            ),
-        ])
-        self.new_game()
+        p1 = Point(0.0, 0.0, 0.0)
+        p2 = Point(0.5, math.sqrt(3) / 2.0, 0.0)
+        p3 = Point(1.0, 0.0, 0.0)
+        h = math.sqrt(2.0/3.0)
 
-        colors = (color.red, color.blue, color.lime, color.black, color.green, color.yellow, color.smoke, color.magenta)
+        a, b, c, n = make_coef_surface(p1, p2, p3)
+        p5, p6 = median_case(p1, p2, p3)
 
-        count = 40
-        a1 = generate_point(ss.triangles[0].min_x, ss.triangles[0].max_x, ss.triangles[0].min_y, ss.triangles[0].max_y,
-                            count, ((0.0, 0.0), (3.0, 4.0), (-3.0, 4.0)))
-        tri = Delaunay(a1)
+        p7 = find_p7_point(p1, p2, p5, p6)
 
-        a1 = numpy.concatenate((a1, numpy.array([[numpy.random.uniform(-1, 1, size=(1, 1))[0][0]] for _ in range(len(a1))])), axis=1)
-        vertices = a1.tolist()
+        p4 = find_p4_point(a, b, c, n, h, p7)
 
-        triangles = tri.simplices.tolist()
+        # count = 100
+        # a1 = generate_point(ss.triangles[0].min_x, ss.triangles[0].max_x, ss.triangles[0].min_y, ss.triangles[0].max_y,
+        #                     count, ((-3.0, 3.0), (-3.0, -3.0), (3.0, -3.0), (3.0, 3.0)))
 
-        normals = generate_normals(vertices, triangles=triangles).tolist()
+        vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
+        trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
+        # tri = Delaunay(a1)
+        #
+        # a1 = numpy.concatenate((a1, numpy.array([[numpy.random.uniform(-1, 1, size=(1, 1))[0][0]] for _ in range(len(a1))])), axis=1)
+        # vertices = a1.tolist()
+        #
+        # triangles = tri.simplices.tolist()
+        #
+        # normals = generate_normals(vertices, triangles=triangles).tolist()
+        normalstiti = generate_normals(vertiti, triangles=trititi).tolist()
+
+        # self.surface = Entity(
+        #     model=Mesh(vertices=vertices, triangles=triangles, normals=normals, colors=colors, thickness=3),
+        #     scale=2)
+        # self.surface.model.colorize(smooth=False)
 
         self.surface = Entity(
-            model=Mesh(vertices=vertices, triangles=triangles, normals=normals, colors=colors, thickness=3),
-            scale=2)
-        self.surface.model.colorize(smooth=False)
+            model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=3), scale=2, color=color.magenta)
+
+        mp1 = calc_midpoint(p1, p2)
+        mp2 = calc_midpoint(p2, p3)
+        mp3 = calc_midpoint(p3, p1)
+        h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
+        cal_tetrahedron(mp1, mp2, mp3, h_new, self.surface)
+
+        mp1 = calc_midpoint(p1, p2)
+        mp2 = calc_midpoint(p2, p4)
+        mp3 = calc_midpoint(p4, p1)
+        h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
+        cal_tetrahedron(mp1, mp2, mp3, h_new, self.surface)
+
+        mp1 = calc_midpoint(p2, p3)
+        mp2 = calc_midpoint(p3, p4)
+        mp3 = calc_midpoint(p4, p2)
+        h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
+        cal_tetrahedron(mp1, mp2, mp3, h_new, self.surface)
+
+        mp1 = calc_midpoint(p1, p3)
+        mp2 = calc_midpoint(p3, p4)
+        mp3 = calc_midpoint(p4, p1)
+        h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
+        cal_tetrahedron(mp1, mp2, mp3, h_new, self.surface)
 
         EditorCamera()
 
@@ -54,10 +87,13 @@ class Game(Ursina):
     def update(self):
         self.surface.rotation_y += held_keys['e'] * time.dt * 10
         self.surface.rotation_y -= held_keys['q'] * time.dt * 10
+
         self.surface.x += held_keys['d'] * time.dt * 5
         self.surface.x -= held_keys['a'] * time.dt * 5
         self.surface.y += held_keys['w'] * time.dt * 5
         self.surface.y -= held_keys['s'] * time.dt * 5
+
+        self.surface.model.generate()
 
     def input(self, key):
         super().input(key)
@@ -159,6 +195,144 @@ class Surface:
             ))
 
         self.triangles = new_triangles
+
+
+def make_coef_surface(p1: Point, p2: Point, p3: Point) -> (float, float, float, float):
+    """
+    Вычисление коэффициентов плоскости A, B, C, проходящую через три точки p1, p2 и p3, и вектора нормали N к этой
+    плоскости.
+    :param p1: Первая точка
+    :param p2: Вторая точка
+    :param p3: Третья точка
+    :return: Кожфиициенты клоскости A, B и C и проходящий через нее вектор нормали N
+    """
+
+    a = (p2.y - p1.y) * (p3.z - p1.z) - (p3.y - p1.y) * (p2.z - p1.z)
+    b = (p3.x - p1.x) * (p2.z - p1.z) - (p2.x - p1.x) * (p3.z - p1.z)
+    c = (p2.x - p1.x) * (p3.y - p1.y) - (p3.x - p1.x) * (p2.y - p1.y)
+    n = math.sqrt(math.pow(a, 2) + math.pow(b, 2) + math.pow(c, 2))
+
+    return a, b, c, n
+
+
+def median_case(p1: Point, p2: Point, p3: Point) -> (Point, Point):
+    """
+
+    :param p1:
+    :param p2:
+    :param p3:
+    :return:
+    """
+
+    p5 = Point((p2.x + p3.x) / 2.0, (p2.y + p3.y) / 2.0, (p2.z + p3.z) / 2.0)
+    p6 = Point((p1.x + p3.x) / 2.0, (p1.y + p3.y) / 2.0, (p1.z + p3.z) / 2.0)
+
+    return p5, p6
+
+
+def find_p7_point(p1: Point, p2: Point, p5: Point, p6: Point) -> Point:
+    """
+
+    :param p1:
+    :param p2:
+    :param p5:
+    :param p6:
+    :return:
+    """
+    y = ((p5.y - p1.y) * (p6.y - p2.y) * p2.x - p6.x * p2.y * p5.y + p6.x * p2.y * p1.y + p2.x * p2.y * p5.y
+         - p2.x * p2.y * p1.y + p5.x * p1.y * p6.y - p5.x * p1.y * p2.y - p1.x * p1.y * p6.y + p1.x * p1.y * p2.y
+         - (p5.y - p1.y) * (p6.y - p2.y) * p1.x) / (p5.x * p6.y - p5.x * p2.y - p1.x * p6.y + p1.x * p2.y - p6.x * p5.y
+                                                    + p6.x * p1.y + p2.x * p5.y - p2.x * p1.y)
+
+    x = ((p5.x - p1.x) * (y - p1.y)) / (p5.y - p1.y) + p1.x
+
+    # todo: bug: float division by zero
+    z = ((x - p1.x) * (p5.z - p1.z)) / (p5.x - p1.x) + p1.z
+
+    return Point(x, y, z)
+
+
+def find_p4_point(a: float, b: float, c: float, n: float, h: float, p7: Point) -> Point:
+    """
+
+    :param a:
+    :param b:
+    :param c:
+    :param n:
+    :param h:
+    :param p7:
+    :return:
+    """
+
+    x = p7.x + (a * h) / n
+    y = p7.y + (b * h) / n
+    z = p7.z + (c * h) / n
+
+    return Point(x, y, z)
+
+
+def calc_midpoint(p1: Point, p2: Point) -> Point:
+    """
+
+    :param p1:
+    :param p2:
+    :return:
+    """
+
+    return Point((p1.x + p2.x) / 2.0, (p1.y + p2.y) / 2.0, (p1.z + p2.z) / 2.0)
+
+
+def calc_distance(p1: Point, p2: Point) -> float:
+    """
+
+    :param p1:
+    :param p2:
+    :return:
+    """
+
+    return math.sqrt(math.pow(p2.x - p1.x, 2) + math.pow(p2.y - p1.y, 2) + math.pow(p2.z - p1.z, 2))
+
+
+def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, parent: Entity) -> None:
+    """
+
+    :param p1:
+    :param p2:
+    :param p3:
+    :param h:
+    :param parent:
+    :return:
+    """
+
+    a, b, c, n = make_coef_surface(p1, p2, p3)
+    p5, p6 = median_case(p1, p2, p3)
+
+    p7 = find_p7_point(p1, p2, p5, p6)
+
+    p4 = find_p4_point(a, b, c, n, h, p7)
+
+    # count = 100
+    # a1 = generate_point(ss.triangles[0].min_x, ss.triangles[0].max_x, ss.triangles[0].min_y, ss.triangles[0].max_y,
+    #                     count, ((-3.0, 3.0), (-3.0, -3.0), (3.0, -3.0), (3.0, 3.0)))
+
+    vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
+    trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
+    # tri = Delaunay(a1)
+    #
+    # a1 = numpy.concatenate((a1, numpy.array([[numpy.random.uniform(-1, 1, size=(1, 1))[0][0]] for _ in range(len(a1))])), axis=1)
+    # vertices = a1.tolist()
+    #
+    # triangles = tri.simplices.tolist()
+    #
+    # normals = generate_normals(vertices, triangles=triangles).tolist()
+    # normalstiti = generate_normals(vertiti, triangles=trititi).tolist()
+
+    # self.surface = Entity(
+    #     model=Mesh(vertices=vertices, triangles=triangles, normals=normals, colors=colors, thickness=3),
+    #     scale=2)
+    # self.surface.model.colorize(smooth=False)
+
+    tetrahedron = Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=5), color=color.magenta)
 
 
 def generate_point(x_min, x_max, y_min, y_max, count, polygon):
