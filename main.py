@@ -1,11 +1,8 @@
-from ursina import Ursina, camera, window, Light, color, scene, Entity, held_keys, time, Mesh, Vec3, EditorCamera
-from ursina.light import DirectionalLight
+from ursina import Ursina, camera, window, Light, color, scene, Entity, held_keys, time, Mesh, EditorCamera
 from ursina.scripts.generate_normals import generate_normals
 from numba import jit
 import math
 import numpy
-from scipy.spatial import Delaunay
-from typing import List, Tuple
 
 
 class Game(Ursina):
@@ -30,26 +27,8 @@ class Game(Ursina):
 
         p4 = find_p4_point(a, b, c, n, h, p7)
 
-        # count = 100
-        # a1 = generate_point(ss.triangles[0].min_x, ss.triangles[0].max_x, ss.triangles[0].min_y, ss.triangles[0].max_y,
-        #                     count, ((-3.0, 3.0), (-3.0, -3.0), (3.0, -3.0), (3.0, 3.0)))
-
         vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
         trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
-        # tri = Delaunay(a1)
-        #
-        # a1 = numpy.concatenate((a1, numpy.array([[numpy.random.uniform(-1, 1, size=(1, 1))[0][0]] for _ in range(len(a1))])), axis=1)
-        # vertices = a1.tolist()
-        #
-        # triangles = tri.simplices.tolist()
-        #
-        # normals = generate_normals(vertices, triangles=triangles).tolist()
-        normalstiti = generate_normals(vertiti, triangles=trititi).tolist()
-
-        # self.surface = Entity(
-        #     model=Mesh(vertices=vertices, triangles=triangles, normals=normals, colors=colors, thickness=3),
-        #     scale=2)
-        # self.surface.model.colorize(smooth=False)
 
         self.surface = Entity(
             model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=3), scale=2, color=color.magenta)
@@ -239,15 +218,9 @@ def find_p7_point(p1: Point, p2: Point, p5: Point, p6: Point) -> Point:
     :param p6:
     :return:
     """
-    y = ((p5.y - p1.y) * (p6.y - p2.y) * p2.x - p6.x * p2.y * p5.y + p6.x * p2.y * p1.y + p2.x * p2.y * p5.y
-         - p2.x * p2.y * p1.y + p5.x * p1.y * p6.y - p5.x * p1.y * p2.y - p1.x * p1.y * p6.y + p1.x * p1.y * p2.y
-         - (p5.y - p1.y) * (p6.y - p2.y) * p1.x) / (p5.x * p6.y - p5.x * p2.y - p1.x * p6.y + p1.x * p2.y - p6.x * p5.y
-                                                    + p6.x * p1.y + p2.x * p5.y - p2.x * p1.y)
-
-    x = ((p5.x - p1.x) * (y - p1.y)) / (p5.y - p1.y) + p1.x
-
-    # todo: bug: float division by zero
-    z = ((x - p1.x) * (p5.z - p1.z)) / (p5.x - p1.x) + p1.z
+    x = p1.x + ((2 * (p5.x - p1.x)) / 3.0)
+    y = p1.y + ((2 * (p5.y - p1.y)) / 3.0)
+    z = p1.z + ((2 * (p5.z - p1.z)) / 3.0)
 
     return Point(x, y, z)
 
@@ -311,28 +284,10 @@ def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, parent: Entity) -
 
     p4 = find_p4_point(a, b, c, n, h, p7)
 
-    # count = 100
-    # a1 = generate_point(ss.triangles[0].min_x, ss.triangles[0].max_x, ss.triangles[0].min_y, ss.triangles[0].max_y,
-    #                     count, ((-3.0, 3.0), (-3.0, -3.0), (3.0, -3.0), (3.0, 3.0)))
-
     vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
     trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
-    # tri = Delaunay(a1)
-    #
-    # a1 = numpy.concatenate((a1, numpy.array([[numpy.random.uniform(-1, 1, size=(1, 1))[0][0]] for _ in range(len(a1))])), axis=1)
-    # vertices = a1.tolist()
-    #
-    # triangles = tri.simplices.tolist()
-    #
-    # normals = generate_normals(vertices, triangles=triangles).tolist()
-    # normalstiti = generate_normals(vertiti, triangles=trititi).tolist()
 
-    # self.surface = Entity(
-    #     model=Mesh(vertices=vertices, triangles=triangles, normals=normals, colors=colors, thickness=3),
-    #     scale=2)
-    # self.surface.model.colorize(smooth=False)
-
-    tetrahedron = Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=5), color=color.magenta)
+    Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=5), color=color.magenta)
 
 
 def generate_point(x_min, x_max, y_min, y_max, count, polygon):
