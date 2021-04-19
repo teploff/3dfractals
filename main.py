@@ -1,3 +1,4 @@
+from typing import Tuple
 from ursina import Ursina, camera, window, Light, color, scene, Entity, held_keys, time, Mesh, EditorCamera
 from ursina.scripts.generate_normals import generate_normals
 from numba import jit
@@ -21,12 +22,12 @@ class Game(Ursina):
         p3 = Point(1.0, 0.0, 0.0)
         h = math.sqrt(2.0/3.0)
 
-        a, b, c, n = make_coef_surface(p1, p2, p3)
+        A, B, C, N, n = make_coef_surface(p1, p2, p3)
         p5, p6 = median_case(p1, p2, p3)
 
         p7 = find_p7_point(p1, p5)
 
-        p4 = find_p4_point(a, b, c, n, h, p7)
+        p4 = find_p4_point(A, B, C, N, h, p7)
 
         vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
         trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
@@ -38,25 +39,25 @@ class Game(Ursina):
         mp2 = calc_midpoint(p2, p3)
         mp3 = calc_midpoint(p3, p1)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        cal_tetrahedron(mp1, mp2, mp3, h_new, self.surface)
+        cal_tetrahedron(mp1, mp2, mp3, h_new, (-n[0], -n[1], -n[2]), self.surface)
 
         mp1 = calc_midpoint(p1, p2)
         mp2 = calc_midpoint(p2, p4)
         mp3 = calc_midpoint(p4, p1)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        cal_tetrahedron(mp1, mp2, mp3, h_new, self.surface)
+        cal_tetrahedron(mp1, mp2, mp3, h_new, n, self.surface)
 
         mp1 = calc_midpoint(p2, p3)
         mp2 = calc_midpoint(p3, p4)
         mp3 = calc_midpoint(p4, p2)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        cal_tetrahedron(mp1, mp2, mp3, h_new, self.surface)
+        cal_tetrahedron(mp1, mp2, mp3, h_new, n, self.surface)
 
         mp1 = calc_midpoint(p1, p3)
         mp2 = calc_midpoint(p3, p4)
         mp3 = calc_midpoint(p4, p1)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        cal_tetrahedron(mp1, mp2, mp3, h_new, self.surface)
+        cal_tetrahedron(mp1, mp2, mp3, h_new, n, self.surface)
 
         EditorCamera()
 
@@ -177,7 +178,7 @@ class Surface:
         self.triangles = new_triangles
 
 
-def make_coef_surface(p1: Point, p2: Point, p3: Point) -> (float, float, float, float):
+def make_coef_surface(p1: Point, p2: Point, p3: Point) -> (float, float, float, float, Tuple[float, float, float]):
     """
     Вычисление коэффициентов плоскости A, B, C, проходящую через три точки p1, p2 и p3, и вектора нормали N к этой
     плоскости.
@@ -187,12 +188,13 @@ def make_coef_surface(p1: Point, p2: Point, p3: Point) -> (float, float, float, 
     :return: Кожфиициенты клоскости A, B и C и проходящий через нее вектор нормали N
     """
 
-    a = (p2.y - p1.y) * (p3.z - p1.z) - (p3.y - p1.y) * (p2.z - p1.z)
-    b = (p3.x - p1.x) * (p2.z - p1.z) - (p2.x - p1.x) * (p3.z - p1.z)
-    c = (p2.x - p1.x) * (p3.y - p1.y) - (p3.x - p1.x) * (p2.y - p1.y)
-    n = math.sqrt(math.pow(a, 2) + math.pow(b, 2) + math.pow(c, 2))
+    A = (p2.y - p1.y) * (p3.z - p1.z) - (p3.y - p1.y) * (p2.z - p1.z)
+    B = (p3.x - p1.x) * (p2.z - p1.z) - (p2.x - p1.x) * (p3.z - p1.z)
+    C = (p2.x - p1.x) * (p3.y - p1.y) - (p3.x - p1.x) * (p2.y - p1.y)
+    N = math.sqrt(math.pow(A, 2) + math.pow(B, 2) + math.pow(C, 2))
+    n = (A/N, B/N, C/N)
 
-    return a, b, c, n
+    return A, B, C, N, n
 
 
 def median_case(p1: Point, p2: Point, p3: Point) -> (Point, Point):
@@ -267,23 +269,28 @@ def calc_distance(p1: Point, p2: Point) -> float:
     return math.sqrt(math.pow(p2.x - p1.x, 2) + math.pow(p2.y - p1.y, 2) + math.pow(p2.z - p1.z, 2))
 
 
-def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, parent: Entity) -> None:
+def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], parent: Entity) -> None:
     """
 
     :param p1:
     :param p2:
     :param p3:
     :param h:
+    :param n_prev:
     :param parent:
     :return:
     """
 
-    a, b, c, n = make_coef_surface(p1, p2, p3)
+    A, B, C, N, n = make_coef_surface(p1, p2, p3)
+
+    if n_prev[0] * n[0] + n_prev[1] * n[1] + n_prev[2] * n[2] < 0:
+        N *= -1
+
     p5, p6 = median_case(p1, p2, p3)
 
     p7 = find_p7_point(p1, p5)
 
-    p4 = find_p4_point(a, b, c, n, h, p7)
+    p4 = find_p4_point(A, B, C, N, h, p7)
 
     vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
     trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
