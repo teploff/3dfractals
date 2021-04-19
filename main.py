@@ -8,6 +8,7 @@ import numpy
 class Game(Ursina):
     def __init__(self):
         super().__init__()
+
         window.color = color.black
         window.fullscreen_size = 1920, 1080
         window.fullscreen = False
@@ -23,7 +24,7 @@ class Game(Ursina):
         a, b, c, n = make_coef_surface(p1, p2, p3)
         p5, p6 = median_case(p1, p2, p3)
 
-        p7 = find_p7_point(p1, p2, p5, p6)
+        p7 = find_p7_point(p1, p5)
 
         p4 = find_p4_point(a, b, c, n, h, p7)
 
@@ -209,7 +210,7 @@ def median_case(p1: Point, p2: Point, p3: Point) -> (Point, Point):
     return p5, p6
 
 
-def find_p7_point(p1: Point, p2: Point, p5: Point, p6: Point) -> Point:
+def find_p7_point(p1: Point, p5: Point) -> Point:
     """
 
     :param p1:
@@ -280,7 +281,7 @@ def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, parent: Entity) -
     a, b, c, n = make_coef_surface(p1, p2, p3)
     p5, p6 = median_case(p1, p2, p3)
 
-    p7 = find_p7_point(p1, p2, p5, p6)
+    p7 = find_p7_point(p1, p5)
 
     p4 = find_p4_point(a, b, c, n, h, p7)
 
