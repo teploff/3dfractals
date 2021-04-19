@@ -1,9 +1,11 @@
-from typing import Tuple
+from typing import Dict, Tuple
 from ursina import Ursina, camera, window, Light, color, scene, Entity, held_keys, time, Mesh, EditorCamera
 from ursina.scripts.generate_normals import generate_normals
 from numba import jit
 import math
 import numpy
+
+MAX_DEPTH = 1
 
 
 class Game(Ursina):
@@ -35,29 +37,45 @@ class Game(Ursina):
         self.surface = Entity(
             model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=3), scale=2, color=color.magenta)
 
+        edges = []
+
         mp1 = calc_midpoint(p1, p2)
         mp2 = calc_midpoint(p2, p3)
         mp3 = calc_midpoint(p3, p1)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        cal_tetrahedron(mp1, mp2, mp3, h_new, (-n[0], -n[1], -n[2]), self.surface)
+        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (-n[0], -n[1], -n[2]), self.surface))
 
         mp1 = calc_midpoint(p1, p2)
         mp2 = calc_midpoint(p2, p4)
         mp3 = calc_midpoint(p4, p1)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        cal_tetrahedron(mp1, mp2, mp3, h_new, n, self.surface)
+        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, n, self.surface))
 
         mp1 = calc_midpoint(p2, p3)
         mp2 = calc_midpoint(p3, p4)
         mp3 = calc_midpoint(p4, p2)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        cal_tetrahedron(mp1, mp2, mp3, h_new, n, self.surface)
+        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, n, self.surface))
 
         mp1 = calc_midpoint(p1, p3)
         mp2 = calc_midpoint(p3, p4)
         mp3 = calc_midpoint(p4, p1)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        cal_tetrahedron(mp1, mp2, mp3, h_new, n, self.surface)
+        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, n, self.surface))
+
+        c = 1
+        while MAX_DEPTH - c >= 0:
+            new_edges = []
+            for edgs in edges:
+                for edge in edgs["edges"]:
+                    mp1 = calc_midpoint(edge[0], edge[1])
+                    mp2 = calc_midpoint(edge[0], edge[2])
+                    mp3 = calc_midpoint(edge[1], edge[2])
+                    h_new = edgs["height"] * calc_distance(mp1, mp2) / calc_distance(edge[0], edge[1])
+                    # WTF (-n[0], -n[1], -n[2]) ????????????
+                    new_edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (-n[0], -n[1], -n[2]), self.surface))
+            edges = new_edges
+            c += 1
 
         EditorCamera()
 
@@ -269,7 +287,7 @@ def calc_distance(p1: Point, p2: Point) -> float:
     return math.sqrt(math.pow(p2.x - p1.x, 2) + math.pow(p2.y - p1.y, 2) + math.pow(p2.z - p1.z, 2))
 
 
-def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], parent: Entity) -> None:
+def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], parent: Entity) -> Dict:
     """
 
     :param p1:
@@ -284,6 +302,7 @@ def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[flo
     A, B, C, N, n = make_coef_surface(p1, p2, p3)
 
     if n_prev[0] * n[0] + n_prev[1] * n[1] + n_prev[2] * n[2] < 0:
+        n = (-n[0], -n[1], -n[2])
         N *= -1
 
     p5, p6 = median_case(p1, p2, p3)
@@ -296,6 +315,8 @@ def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[flo
     trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
 
     Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=5), color=color.magenta)
+
+    return {"edges": [[p1, p2, p4], [p1, p3, p4], [p2, p3, p4]], "normal": n, "height": h}
 
 
 def generate_point(x_min, x_max, y_min, y_max, count, polygon):
