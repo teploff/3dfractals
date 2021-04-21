@@ -43,7 +43,7 @@ class Game(Ursina):
         mp2 = calc_midpoint(p2, p3)
         mp3 = calc_midpoint(p3, p1)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (-n[0], -n[1], -n[2]), self.surface))
+        edges.append(cal_tetrahedron_1(mp1, mp2, mp3, h_new, n, self.surface))
 
         mp1 = calc_midpoint(p1, p2)
         mp2 = calc_midpoint(p2, p4)
@@ -73,7 +73,7 @@ class Game(Ursina):
                     mp3 = calc_midpoint(edge[1], edge[2])
                     h_new = edgs["height"] * calc_distance(mp1, mp2) / calc_distance(edge[0], edge[1])
                     # WTF (-n[0], -n[1], -n[2]) ????????????
-                    new_edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (-n[0], -n[1], -n[2]), self.surface))
+                    new_edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (n[0], n[1], n[2]), self.surface))
             edges = new_edges
             c += 1
 
@@ -302,8 +302,43 @@ def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[flo
     A, B, C, N, n = make_coef_surface(p1, p2, p3)
 
     if n_prev[0] * n[0] + n_prev[1] * n[1] + n_prev[2] * n[2] < 0:
-        n = (-n[0], -n[1], -n[2])
-        N *= -1
+        A *= -1
+        B *= -1
+        C *= -1
+
+    p5, p6 = median_case(p1, p2, p3)
+
+    p7 = find_p7_point(p1, p5)
+
+    p4 = find_p4_point(A, B, C, N, h, p7)
+
+    vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
+    trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
+
+    Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=5), color=color.magenta)
+
+    return {"edges": [[p1, p2, p4], [p1, p3, p4], [p2, p3, p4]], "normal": n, "height": h}
+
+
+def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], parent: Entity) -> Dict:
+    """
+
+    :param p1:
+    :param p2:
+    :param p3:
+    :param h:
+    :param n_prev:
+    :param parent:
+    :return:
+    """
+
+    A, B, C, N, n = make_coef_surface(p1, p2, p3)
+
+    A *= -1
+    B *= -1
+    C *= -1
+
+    n = (-n[0], -n[1], -n[2])
 
     p5, p6 = median_case(p1, p2, p3)
 
