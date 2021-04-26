@@ -4,7 +4,6 @@ numba==0.52.0
 numpy==1.19.4
 panda3d==1.10.7
 Pillow==8.0.1
-pkg-resources==0.0.0
 pyperclip==1.8.1
 scipy==1.5.4
 screeninfo==0.6.6
