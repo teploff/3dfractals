@@ -5,7 +5,7 @@ from numba import jit
 import math
 import numpy
 
-MAX_DEPTH = 3
+MAX_DEPTH = 1
 
 
 class Game(Ursina):
@@ -35,7 +35,7 @@ class Game(Ursina):
         trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
 
         self.surface = Entity(
-            model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=3), scale=2, color=color.yellow)
+            model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=4), scale=2, color=color.yellow)
 
         edges = []
 
@@ -43,37 +43,43 @@ class Game(Ursina):
         mp2 = calc_midpoint(p2, p3)
         mp3 = calc_midpoint(p3, p1)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        edges.append(cal_tetrahedron_1(mp1, mp2, mp3, h_new, (A, B, C), self.surface))
+        edges.append(cal_tetrahedron_1(mp1, mp2, mp3, h_new, (A, B, C), self.surface, thickness=4, color=color.azure))
+        edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p3, mp3]], "normal": (-A, -B, -C), "height": h_new})
 
         mp1 = calc_midpoint(p1, p2)
         mp2 = calc_midpoint(p2, p4)
         mp3 = calc_midpoint(p4, p1)
         h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (A, B, C), self.surface))
+        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (A, B, C), self.surface, thickness=4, color=color.azure))
+        edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         mp1 = calc_midpoint(p2, p3)
         mp2 = calc_midpoint(p3, p4)
         mp3 = calc_midpoint(p4, p2)
-        h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (A, B, C), self.surface))
+        h_new = h * calc_distance(mp1, mp2) / calc_distance(p2, p3)
+        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (A, B, C), self.surface, thickness=4, color=color.azure))
+        edges.append({"edges": [[p2, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         mp1 = calc_midpoint(p1, p3)
         mp2 = calc_midpoint(p3, p4)
         mp3 = calc_midpoint(p4, p1)
-        h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p2)
-        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (A, B, C), self.surface))
+        h_new = h * calc_distance(mp1, mp2) / calc_distance(p1, p3)
+        edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (A, B, C), self.surface, thickness=4, color=color.azure))
+        edges.append({"edges": [[p1, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         c = 1
         while MAX_DEPTH - c >= 0:
             new_edges = []
+            dsss = color.random_color()
             for edgs in edges:
                 for edge in edgs["edges"]:
                     mp1 = calc_midpoint(edge[0], edge[1])
                     mp2 = calc_midpoint(edge[0], edge[2])
                     mp3 = calc_midpoint(edge[1], edge[2])
                     h_new = edgs["height"] * calc_distance(mp1, mp2) / calc_distance(edge[0], edge[1])
-                    # WTF (-n[0], -n[1], -n[2]) ????????????
-                    new_edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, edgs['normal'], self.surface))
+                    new_edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, edgs['normal'], self.surface, thickness=2, color=dsss))
+                    new_edges.append({"edges": [[edge[0], mp1, mp3], [mp1, edge[1], mp2], [mp2, edge[2], mp3]],
+                                      "normal": (A, B, C), "height": h_new})
             edges = new_edges
             c += 1
 
@@ -287,7 +293,8 @@ def calc_distance(p1: Point, p2: Point) -> float:
     return math.sqrt(math.pow(p2.x - p1.x, 2) + math.pow(p2.y - p1.y, 2) + math.pow(p2.z - p1.z, 2))
 
 
-def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], parent: Entity) -> Dict:
+def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], parent: Entity,
+                    thickness:int, color: color) -> Dict:
     """
 
     :param p1:
@@ -315,12 +322,13 @@ def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[flo
     vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
     trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
 
-    Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=5), color=color.yellow)
+    Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=thickness), color=color)
 
     return {"edges": [[p1, p2, p4], [p1, p3, p4], [p2, p3, p4]], "normal": (A, B, C), "height": h}
 
 
-def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], parent: Entity) -> Dict:
+def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], parent: Entity,
+                      thickness:int, color: color) -> Dict:
     """
 
     :param p1:
@@ -347,7 +355,7 @@ def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[f
     vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
     trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
 
-    Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=5), color=color.yellow)
+    Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=thickness), color=color)
 
     return {"edges": [[p1, p2, p4], [p1, p3, p4], [p2, p3, p4]], "normal": (A, B, C), "height": h}
 
