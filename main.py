@@ -4,6 +4,7 @@ from ursina.scripts.generate_normals import generate_normals
 from numba import jit
 import math
 import numpy
+from ursina import Mesh
 
 MAX_DEPTH = 1
 
@@ -33,9 +34,10 @@ class Game(Ursina):
 
         vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
         trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
+        normalstiti = generate_normals(vertiti, triangles=trititi).tolist()
 
         self.surface = Entity(
-            model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=4), scale=2, color=color.yellow)
+            model=Mesh(vertices=vertiti, triangles=trititi, normals=normalstiti, thickness=4), scale=2, color=color.yellow)
 
         edges = []
 
