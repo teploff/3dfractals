@@ -11,7 +11,8 @@ class Game(Ursina):
         window.fullscreen_size = 1920, 1080
         window.fullscreen = False
 
-        Light(type='directional', color=(1, 1, 1, 1), direction=(1, 1, 1))
+        Light(type='directional', color=(1, 1, 1, 1), direction=(0, 0, 1))
+        Light(type='directional', color=(1, 1, 1, 1), direction=(0, 0, -1))
         # Light(type='ambient', color=(0.5, 0.5, 0.5, 1))
 
         vertices = [[0.0, 0.0, 0.0], [0.5, 0.8660254037844386, 0.0], [1.0, 0.0, 0.0],
@@ -84,6 +85,7 @@ class Point:
         self.x = x
         self.y = y
         self.z = z
+
 
 def make_coef_surface(p1: Point, p2: Point, p3: Point) -> (float, float, float, float, Tuple[float, float, float]):
     """
