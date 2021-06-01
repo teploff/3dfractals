@@ -57,69 +57,89 @@ class Game(Ursina):
 
         normals = [(A1, B1, C1), (A2, B2, C2), (A3, B3, C3), (A4, B4, C4)]
 
-        # mp1 = calc_midpoint(p1, p3)
-        # mp2 = calc_midpoint(p3, p4)
-        # mp3 = calc_midpoint(p4, p1)
-        # h_new = math.sqrt(2.0 / 3.0) * calc_distance(mp1, mp2) / calc_distance(p1, p3)
-        # p5, p6 = median_case(mp1, mp2, mp3)
-        #
-        # p7 = find_p7_point(p1, p5)
-        #
-        # vvv = find_p4_point(A1, B1, C1, N1, h_new, p7)
-        #
+        mp1 = calc_midpoint(p1, p3)
+        mp2 = calc_midpoint(p3, p4)
+        mp3 = calc_midpoint(p4, p1)
+        h_new = math.sqrt(2.0 / 3.0) * calc_distance(mp1, mp2) / calc_distance(p1, p3)
+        p5, p6 = median_case(mp1, mp2, mp3)
+
+        p7 = find_p7_point(p1, p5)
+
+        vvv = find_p4_point(A1, B1, C1, N1, h_new, p7)
+
         # triangles = triangles[3:]
-        # vertices += [[mp1.x, mp1.y, mp1.z], [mp2.x, mp2.y, mp2.z], [mp3.x, mp3.y, mp3.z], [vvv.x, vvv.y, vvv.z]]
-        # zz = len(triangles)
-        # new_triangles = [len(triangles)+0, len(triangles)+1, len(triangles)+3, len(triangles)+0, len(triangles)+2,
-        #                  len(triangles)+3, len(triangles)+1, len(triangles)+2, len(triangles)+3,  0, len(triangles)+0,
-        #                  len(triangles)+2,  len(triangles)+0 + 2, len(triangles)+1,
-        #                  len(triangles)+1, 3, len(triangles)+2]
-        # triangles += new_triangles
-        #
-        # A11, B11, C11, _, _ = make_coef_surface(mp1, mp2, vvv)
-        # A12, B12, C12, _, _ = make_coef_surface(mp1, mp3, vvv)
-        # A13, B13, C13, _, _ = make_coef_surface(mp2, mp3, vvv)
-        # A14, B14, C14, _, _ = make_coef_surface(p1, mp1, mp3)
-        # A15, B15, C15, _, _ = make_coef_surface(mp1, p3, mp2)
-        # A16, B16, C16, _, _ = make_coef_surface(mp2, p4, mp3)
-        #
-        # if A11 * A1 + B11 * B1 + C11 * C1 < 0:
-        #     A11 *= -1
-        #     B11 *= -1
-        #     C11 *= -1
-        #     triangles[0+len(triangles)], triangles[1+len(triangles)] = triangles[1+len(triangles)], triangles[0+len(triangles)]
-        #
-        # if A12 * A1 + B12 * B1 + C12 * C1 < 0:
-        #     A12 *= -1
-        #     B12 *= -1
-        #     C12 *= -1
-        #     triangles[3+len(triangles)], triangles[4+len(triangles)] = triangles[4+len(triangles)], triangles[3+len(triangles)]
-        #
-        # if A13 * A1 + B13 * B1 + C13 * C1 < 0:
-        #     A13 *= -1
-        #     B13 *= -1
-        #     C13 *= -1
-        #     triangles[6+len(triangles)], triangles[7+len(triangles)] = triangles[7+len(triangles)], triangles[6+len(triangles)]
-        #
-        # if A14 * A1 + B14 * B1 + C14 * C1 < 0:
-        #     A14 *= -1
-        #     B14 *= -1
-        #     C14 *= -1
-        #     triangles[6+len(triangles)], triangles[7+len(triangles)] = triangles[7+len(triangles)], triangles[6+len(triangles)]
-        #
-        # if A15 * A1 + B15 * B1 + C15 * C1 < 0:
-        #     A15 *= -1
-        #     B15 *= -1
-        #     C15 *= -1
-        #     triangles[6+len(triangles)], triangles[7+len(triangles)] = triangles[7+len(triangles)], triangles[6+len(triangles)]
-        #
-        # if A16 * A1 + B16 * B1 + C16 * C1 < 0:
-        #     A16 *= -1
-        #     B16 *= -1
-        #     C16 *= -1
-        #     triangles[6+len(triangles)], triangles[7+len(triangles)] = triangles[7+len(triangles)], triangles[6+len(triangles)]
-        #
-        # normals += [(A11, B11, C11), (A12, B12, C12), (A13, B13, C13)]
+        vertices += [[mp1.x, mp1.y, mp1.z], [mp2.x, mp2.y, mp2.z], [mp3.x, mp3.y, mp3.z], [vvv.x, vvv.y, vvv.z]]
+
+        A11, B11, C11, _, _ = make_coef_surface(mp1, mp2, vvv)
+        A12, B12, C12, _, _ = make_coef_surface(mp1, mp3, vvv)
+        A13, B13, C13, _, _ = make_coef_surface(mp2, mp3, vvv)
+        A14, B14, C14, _, _ = make_coef_surface(p1, mp1, mp3)
+        A15, B15, C15, _, _ = make_coef_surface(mp1, p3, mp2)
+        A16, B16, C16, _, _ = make_coef_surface(mp2, p4, mp3)
+
+        trian = []
+        norman = []
+        # triangle = [[mp1.x, mp1.y, mp1.z], [mp2.x, mp2.y, mp2.z], [vvv.x, vvv.y, vvv.z]]
+        triangle = [4, 5, 7]
+        if A11 * A1 + B11 * B1 + C11 * C1 < 0:
+            A11 *= -1
+            B11 *= -1
+            C11 *= -1
+            triangle[0], triangle[1] = triangle[1], triangle[0]
+        trian += triangle
+        norman += [(A11, B11, C11)]
+
+        # triangle = [[mp1.x, mp1.y, mp1.z], [mp3.x, mp3.y, mp3.z], [vvv.x, vvv.y, vvv.z]]
+        triangle = [4, 6, 7]
+        if A12 * A1 + B12 * B1 + C12 * C1 < 0:
+            A12 *= -1
+            B12 *= -1
+            C12 *= -1
+        trian += triangle
+        norman += [(A12, B12, C12)]
+
+        # triangle = [[mp2.x, mp2.y, mp2.z], [mp3.x, mp3.y, mp3.z], [vvv.x, vvv.y, vvv.z]]
+        triangle = [5, 6, 7]
+        if A13 * A1 + B13 * B1 + C13 * C1 < 0:
+            A13 *= -1
+            B13 *= -1
+            C13 *= -1
+            triangle[0], triangle[1] = triangle[1], triangle[0]
+        trian += triangle
+        norman += [(A13, B13, C13)]
+
+        # triangle = [[p1.x, p1.y, p1.z], [mp1.x, mp1.y, mp1.z], [mp3.x, mp3.y, mp3.z]]
+        triangle = [0, 4, 6]
+        if A14 * A1 + B14 * B1 + C14 * C1 < 0:
+            A14 *= -1
+            B14 *= -1
+            C14 *= -1
+            triangle[0], triangle[1] = triangle[1], triangle[0]
+        trian += triangle
+        norman += [(A14, B14, C14)]
+
+        # triangle = [[mp1.x, mp1.y, mp1.z], [p3.x, p3.y, p3.z], [mp2.x, mp2.y, mp2.z]]
+        triangle = [4, 2, 5]
+        if A15 * A1 + B15 * B1 + C15 * C1 < 0:
+            A15 *= -1
+            B15 *= -1
+            C15 *= -1
+            triangle[0], triangle[1] = triangle[1], triangle[0]
+        trian += triangle
+        norman += [(A15, B15, C15)]
+
+        # triangle = [[mp2.x, mp2.y, mp2.z], [p4.x, p4.y, p4.z], [mp3.x, mp3.y, mp3.z]]
+        triangle = [5, 3, 6]
+        if A16 * A1 + B16 * B1 + C16 * C1 < 0:
+            A16 *= -1
+            B16 *= -1
+            C16 *= -1
+            triangle[0], triangle[1] = triangle[1], triangle[0]
+        trian += triangle
+        norman += [(A16, B16, C16)]
+
+        triangles = trian + triangles[3:]
+        normals = norman + normals[1:]
 
         self.surface = Entity(
             model=Mesh(vertices=vertices, triangles=triangles, mode='triangle', thickness=4, normals=normals), scale=2, color=color.yellow)
