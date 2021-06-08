@@ -67,7 +67,6 @@ class Game(Ursina):
 
         vvv = find_p4_point(A1, B1, C1, N1, h_new, p7)
 
-        # triangles = triangles[3:]
         vertices += [[mp1.x, mp1.y, mp1.z], [mp2.x, mp2.y, mp2.z], [mp3.x, mp3.y, mp3.z], [vvv.x, vvv.y, vvv.z]]
 
         A11, B11, C11, _, _ = make_coef_surface(mp1, mp2, vvv)
@@ -111,56 +110,38 @@ class Game(Ursina):
         # triangle = [[p1.x, p1.y, p1.z], [mp1.x, mp1.y, mp1.z], [mp3.x, mp3.y, mp3.z]]
         triangle = [0, 4, 6]
         if A14 * A1 + B14 * B1 + C14 * C1 < 0:
-            A14 *= -1
-            B14 *= -1
-            C14 *= -1
+            # A14 *= -1
+            # B14 *= -1
+            # C14 *= -1
             triangle[0], triangle[1] = triangle[1], triangle[0]
         trian += triangle
-        norman += [(A14, B14, C14)]
+        norman += [(A1, B1, C1)]
 
         # triangle = [[mp1.x, mp1.y, mp1.z], [p3.x, p3.y, p3.z], [mp2.x, mp2.y, mp2.z]]
         triangle = [4, 2, 5]
         if A15 * A1 + B15 * B1 + C15 * C1 < 0:
-            A15 *= -1
-            B15 *= -1
-            C15 *= -1
+            # A15 *= -1
+            # B15 *= -1
+            # C15 *= -1
             triangle[0], triangle[1] = triangle[1], triangle[0]
         trian += triangle
-        norman += [(A15, B15, C15)]
+        norman += [(A1, B1, C1)]
 
         # triangle = [[mp2.x, mp2.y, mp2.z], [p4.x, p4.y, p4.z], [mp3.x, mp3.y, mp3.z]]
         triangle = [5, 3, 6]
         if A16 * A1 + B16 * B1 + C16 * C1 < 0:
-            A16 *= -1
-            B16 *= -1
-            C16 *= -1
+            # A16 *= -1
+            # B16 *= -1
+            # C16 *= -1
             triangle[0], triangle[1] = triangle[1], triangle[0]
         trian += triangle
-        norman += [(A16, B16, C16)]
+        norman += [(A1, B1, C1)]
 
         triangles = trian + triangles[3:]
         normals = norman + normals[1:]
 
         self.surface = Entity(
             model=Mesh(vertices=vertices, triangles=triangles, mode='triangle', thickness=4, normals=normals), scale=2, color=color.yellow)
-
-        # mp1 = calc_midpoint(p1, p4)
-        # mp2 = calc_midpoint(p4, p2)
-        # mp3 = calc_midpoint(p2, p1)
-        # h_new = math.sqrt(2.0 / 3.0) * calc_distance(mp1, mp2) / calc_distance(p1, p4)
-        # cal_tetrahedron(mp1, mp2, mp3, h_new, A2, B2, C2, N2, self.surface, thickness=4, color=color.yellow)
-        #
-        # mp1 = calc_midpoint(p3, p2)
-        # mp2 = calc_midpoint(p2, p4)
-        # mp3 = calc_midpoint(p4, p3)
-        # h_new = math.sqrt(2.0 / 3.0) * calc_distance(mp1, mp2) / calc_distance(p3, p2)
-        # cal_tetrahedron(mp1, mp2, mp3, h_new, A3, B3, C3, N3, self.surface, thickness=4, color=color.yellow)
-        #
-        # mp1 = calc_midpoint(p1, p3)
-        # mp2 = calc_midpoint(p3, p2)
-        # mp3 = calc_midpoint(p2, p1)
-        # h_new = math.sqrt(2.0 / 3.0) * calc_distance(mp1, mp2) / calc_distance(p1, p3)
-        # cal_tetrahedron(mp1, mp2, mp3, h_new, A4, B4, C4, N4, self.surface, thickness=4, color=color.yellow)
 
         EditorCamera()
 

@@ -37,7 +37,7 @@ class Game(Ursina):
         normalstiti = generate_normals(vertiti, triangles=trititi).tolist()
 
         self.surface = Entity(
-            model=Mesh(vertices=vertiti, triangles=trititi, normals=normalstiti, thickness=4), scale=2, color=color.yellow)
+            model=Mesh(vertices=vertiti, triangles=trititi, thickness=4, mode='line'), scale=2, color=color.yellow)
 
         edges = []
 
