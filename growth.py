@@ -138,7 +138,7 @@ def find_p4_point(a: float, b: float, c: float, n: float, h: float, p7: Point) -
 
 class MaterialState:
     def __init__(self, depth: int, vertices: List[List[float]], triangles: List[List[int]], p1: Point, p2: Point,
-                 p3: Point, p4: Point = None, h: float = None):
+                 p3: Point, p4: Point = None, h: float = None, A: float = None, B: float = None, C: float = None):
         self.depth = depth
         self.vertices = vertices
         self.triangles = triangles
@@ -147,6 +147,9 @@ class MaterialState:
         self.p3 = p3
         self.p4 = p4
         self.h = h
+        self.A = A
+        self.B = B
+        self.C = C
 
 
 class Builder:
@@ -193,7 +196,7 @@ def lol(koef: float, depth: int) -> [MaterialState]:
     vertices = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
     triangles = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
 
-    return [MaterialState(depth, vertices, triangles, p1=p1, p2=p2, p3=p3, p4=p4, h=h)]
+    return [MaterialState(depth, vertices, triangles, p1=p1, p2=p2, p3=p3, p4=p4, h=h, A=A, B=B, C=C)]
 
 
 def build(iter_count: int, limit_value: float) -> Builder:
@@ -230,26 +233,39 @@ def build(iter_count: int, limit_value: float) -> Builder:
     ordinary_coefficient = calc_distance(last_material.p1, mp11) / float(iter_count)
 
     c = 1
-    for _ in range(iter_count):
+    for i in range(iter_count):
         materials = []
 
         c += ordinary_coefficient
+        c2 = coefficient + coefficient * i
 
         materials.append(growth_triangle(p1=last_material.p1, p2=mp11, p3=mp31, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp11, p2=last_material.p2, p3=mp21, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp21, p2=last_material.p3, p3=mp31, coefficient=c, depth=1))
 
+        materials.append(cal_tetrahedron_1(mp11, mp21, mp31, h_new_1, coefficient=c2, depth=1))
+        # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p3, mp3]], "normal": (-A, -B, -C), "height": h_new})
+
         materials.append(growth_triangle(p1=last_material.p1, p2=mp12, p3=mp32, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp12, p2=last_material.p2, p3=mp22, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp22, p2=last_material.p4, p3=mp32, coefficient=c, depth=1))
+
+        materials.append(cal_tetrahedron(mp12, mp22, mp32, h_new_1, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1))
+        # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         materials.append(growth_triangle(p1=last_material.p2, p2=mp13, p3=mp33, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp13, p2=last_material.p3, p3=mp23, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp23, p2=last_material.p4, p3=mp33, coefficient=c, depth=1))
 
+        materials.append(cal_tetrahedron(mp13, mp23, mp33, h_new_3, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1))
+        # edges.append({"edges": [[p2, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
+
         materials.append(growth_triangle(p1=last_material.p1, p2=mp14, p3=mp34, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp14, p2=last_material.p3, p3=mp24, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp24, p2=last_material.p4, p3=mp34, coefficient=c, depth=1))
+
+        materials.append(cal_tetrahedron(mp14, mp24, mp34, h_new_4, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1))
+        # edges.append({"edges": [[p1, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         fractal.append_material(materials)
 
@@ -290,38 +306,57 @@ def calc_distance(p1: Point, p2: Point) -> float:
     return math.sqrt(math.pow(p2.x - p1.x, 2) + math.pow(p2.y - p1.y, 2) + math.pow(p2.z - p1.z, 2))
 
 
-def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], parent: Entity,
-                      thickness: int, color: color) -> Dict:
-    """
+def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, coefficient: float, depth: int) -> MaterialState:
+    p11 = Point(p1.x * coefficient, p1.y * coefficient, p1.z * coefficient)
+    p22 = Point(p2.x * coefficient, p2.y * coefficient, p2.z * coefficient)
+    p33 = Point(p3.x * coefficient, p3.y * coefficient, p3.z * coefficient)
+    h1 = h * coefficient
 
-    :param p1:
-    :param p2:
-    :param p3:
-    :param h:
-    :param n_prev:
-    :param parent:
-    :return:
-    """
 
-    A, B, C, N, n = make_coef_surface(p1, p2, p3)
+    A, B, C, N, n = make_coef_surface(p11, p22, p33)
 
     A *= -1
     B *= -1
     C *= -1
 
-    p5, p6 = median_case(p1, p2, p3)
+    p5, p6 = median_case(p11, p22, p33)
 
-    p7 = find_p7_point(p1, p5)
+    p7 = find_p7_point(p11, p5)
 
-    p4 = find_p4_point(A, B, C, N, h, p7)
+    p4 = find_p4_point(A, B, C, N, h1, p7)
+
+    vertices = [[p11.x, p11.y, p11.z], [p22.x, p22.y, p22.z], [p33.x, p33.y, p33.z], [p4.x, p4.y, p4.z]]
+    triangles = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
+
+    return MaterialState(depth, vertices, triangles, p1=p1, p2=p2, p3=p3, p4=p4, h=h, A=A, B=B, C=C)
+
+
+def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], coefficient: float, depth: int) -> MaterialState:
+    p11 = Point(p1.x * coefficient, p1.y * coefficient, p1.z * coefficient)
+    p22 = Point(p2.x * coefficient, p2.y * coefficient, p2.z * coefficient)
+    p33 = Point(p3.x * coefficient, p3.y * coefficient, p3.z * coefficient)
+    h1 = h * coefficient
+
+    A, B, C, N, n = make_coef_surface(p11, p22, p33)
+
+    if n_prev[0] * A + n_prev[1] * B + n_prev[2] * C < 0:
+        A *= -1
+        B *= -1
+        C *= -1
+
+    p5, p6 = median_case(p11, p22, p33)
+
+    p7 = find_p7_point(p11, p5)
+
+    p4 = find_p4_point(A, B, C, N, h1, p7)
 
     vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
     trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
 
-    Entity(parent=parent, model=Mesh(vertices=vertiti, triangles=trititi, mode='line', thickness=thickness),
-           color=color)
+    vertices = [[p11.x, p11.y, p11.z], [p22.x, p22.y, p22.z], [p33.x, p33.y, p33.z], [p4.x, p4.y, p4.z]]
+    triangles = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
 
-    return {"edges": [[p1, p2, p4], [p1, p3, p4], [p2, p3, p4]], "normal": (A, B, C), "height": h}
+    return MaterialState(depth, vertices, triangles, p1=p1, p2=p2, p3=p3, p4=p4, h=h, A=A, B=B, C=C)
 
 
 def growth_triangle(p1: Point, p2: Point, p3: Point, coefficient: float, depth: int):
