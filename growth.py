@@ -243,28 +243,44 @@ def build(iter_count: int, limit_value: float) -> Builder:
         materials.append(growth_triangle(p1=mp11, p2=last_material.p2, p3=mp21, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp21, p2=last_material.p3, p3=mp31, coefficient=c, depth=1))
 
-        materials.append(cal_tetrahedron_1(mp11, mp21, mp31, h_new_1, coefficient=c2, depth=1))
+        f_c = calc_centroid(
+            Point(mp11.x * c, mp11.y * c, mp11.z * c),
+            Point(mp21.x * c, mp21.y * c, mp21.z * c),
+            Point(mp31.x * c, mp31.y * c, mp31.z * c))
+        materials.append(cal_tetrahedron_1(mp11, mp21, mp31, h_new_1, coefficient=c2, depth=1, f_c=f_c))
         # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p3, mp3]], "normal": (-A, -B, -C), "height": h_new})
 
         materials.append(growth_triangle(p1=last_material.p1, p2=mp12, p3=mp32, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp12, p2=last_material.p2, p3=mp22, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp22, p2=last_material.p4, p3=mp32, coefficient=c, depth=1))
 
-        materials.append(cal_tetrahedron(mp12, mp22, mp32, h_new_1, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1))
+        f_c = calc_centroid(
+            Point(mp12.x * c, mp12.y * c, mp12.z * c),
+            Point(mp22.x * c, mp22.y * c, mp22.z * c),
+            Point(mp32.x * c, mp32.y * c, mp32.z * c))
+        materials.append(cal_tetrahedron(mp12, mp22, mp32, h_new_1, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
         # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         materials.append(growth_triangle(p1=last_material.p2, p2=mp13, p3=mp33, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp13, p2=last_material.p3, p3=mp23, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp23, p2=last_material.p4, p3=mp33, coefficient=c, depth=1))
 
-        materials.append(cal_tetrahedron(mp13, mp23, mp33, h_new_3, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1))
+        f_c = calc_centroid(
+            Point(mp13.x * c, mp13.y * c, mp13.z * c),
+            Point(mp23.x * c, mp23.y * c, mp23.z * c),
+            Point(mp33.x * c, mp33.y * c, mp33.z * c))
+        materials.append(cal_tetrahedron(mp13, mp23, mp33, h_new_3, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
         # edges.append({"edges": [[p2, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         materials.append(growth_triangle(p1=last_material.p1, p2=mp14, p3=mp34, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp14, p2=last_material.p3, p3=mp24, coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp24, p2=last_material.p4, p3=mp34, coefficient=c, depth=1))
 
-        materials.append(cal_tetrahedron(mp14, mp24, mp34, h_new_4, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1))
+        f_c = calc_centroid(
+            Point(mp14.x * c, mp14.y * c, mp14.z * c),
+            Point(mp24.x * c, mp24.y * c, mp24.z * c),
+            Point(mp34.x * c, mp34.y * c, mp34.z * c))
+        materials.append(cal_tetrahedron(mp14, mp24, mp34, h_new_4, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
         # edges.append({"edges": [[p1, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         fractal.append_material(materials)
@@ -306,11 +322,29 @@ def calc_distance(p1: Point, p2: Point) -> float:
     return math.sqrt(math.pow(p2.x - p1.x, 2) + math.pow(p2.y - p1.y, 2) + math.pow(p2.z - p1.z, 2))
 
 
-def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, coefficient: float, depth: int) -> MaterialState:
+def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, coefficient: float, depth: int, f_c: Point) -> MaterialState:
     p11 = Point(p1.x * coefficient, p1.y * coefficient, p1.z * coefficient)
     p22 = Point(p2.x * coefficient, p2.y * coefficient, p2.z * coefficient)
     p33 = Point(p3.x * coefficient, p3.y * coefficient, p3.z * coefficient)
     h1 = h * coefficient
+
+    s_c = calc_centroid(p11, p22, p33)
+
+    dx = f_c.x - s_c.x
+    dy = f_c.y - s_c.y
+    dz = f_c.z - s_c.z
+
+    p11.x += dx
+    p22.x += dx
+    p33.x += dx
+
+    p11.y += dy
+    p22.y += dy
+    p33.y += dy
+
+    p11.z += dz
+    p22.z += dz
+    p33.z += dz
 
 
     A, B, C, N, n = make_coef_surface(p11, p22, p33)
@@ -331,11 +365,30 @@ def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, coefficient: fl
     return MaterialState(depth, vertices, triangles, p1=p1, p2=p2, p3=p3, p4=p4, h=h, A=A, B=B, C=C)
 
 
-def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], coefficient: float, depth: int) -> MaterialState:
+def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], coefficient: float, depth: int, f_c: Point) -> MaterialState:
     p11 = Point(p1.x * coefficient, p1.y * coefficient, p1.z * coefficient)
     p22 = Point(p2.x * coefficient, p2.y * coefficient, p2.z * coefficient)
     p33 = Point(p3.x * coefficient, p3.y * coefficient, p3.z * coefficient)
     h1 = h * coefficient
+
+
+    s_c = calc_centroid(p11, p22, p33)
+
+    dx = f_c.x - s_c.x
+    dy = f_c.y - s_c.y
+    dz = f_c.z - s_c.z
+
+    p11.x += dx
+    p22.x += dx
+    p33.x += dx
+
+    p11.y += dy
+    p22.y += dy
+    p33.y += dy
+
+    p11.z += dz
+    p22.z += dz
+    p33.z += dz
 
     A, B, C, N, n = make_coef_surface(p11, p22, p33)
 
@@ -370,6 +423,10 @@ def growth_triangle(p1: Point, p2: Point, p3: Point, coefficient: float, depth: 
     triangles = [[0, 1], [1, 2], [2, 0]]
 
     return MaterialState(depth, vertices, triangles, p1=p11, p2=p22, p3=p33)
+
+
+def calc_centroid(p1: Point, p2: Point, p3: Point) -> Point:
+    return Point((p1.x + p2.x + p3.x) / 3.0, (p1.y + p2.y + p3.y) / 3.0, (p1.z + p2.z + p3.z) / 3.0)
 
 
 if __name__ == '__main__':
