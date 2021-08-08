@@ -3,7 +3,7 @@ from ursina import Ursina, camera, window, Light, color, scene, Entity, held_key
 import math
 from ursina import Mesh
 
-MAX_DEPTH = 1
+MAX_DEPTH = 2
 ITER_COUNT = 10
 LIMIT_VALUE = 2.0
 ACCURACY = 0.001
@@ -239,9 +239,9 @@ def build(iter_count: int, limit_value: float) -> Builder:
         c += ordinary_coefficient
         c2 = coefficient + coefficient * i
 
-        materials.append(growth_triangle(p1=last_material.p1, p2=mp11, p3=mp31, coefficient=c, depth=1))
-        materials.append(growth_triangle(p1=mp11, p2=last_material.p2, p3=mp21, coefficient=c, depth=1))
-        materials.append(growth_triangle(p1=mp21, p2=last_material.p3, p3=mp31, coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=last_material.p1, p2=mp11, p3=mp31, h=h_new_1, n_prev=(-last_material.A, -last_material.B, -last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp11, p2=last_material.p2, p3=mp21, h=h_new_1,  n_prev=(-last_material.A, -last_material.B, -last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp21, p2=last_material.p3, p3=mp31, h=h_new_1,  n_prev=(-last_material.A, -last_material.B, -last_material.C), coefficient=c, depth=1))
 
         f_c = calc_centroid(
             Point(mp11.x * c, mp11.y * c, mp11.z * c),
@@ -250,9 +250,9 @@ def build(iter_count: int, limit_value: float) -> Builder:
         materials.append(cal_tetrahedron_1(mp11, mp21, mp31, h_new_1, coefficient=c2, depth=1, f_c=f_c))
         # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p3, mp3]], "normal": (-A, -B, -C), "height": h_new})
 
-        materials.append(growth_triangle(p1=last_material.p1, p2=mp12, p3=mp32, coefficient=c, depth=1))
-        materials.append(growth_triangle(p1=mp12, p2=last_material.p2, p3=mp22, coefficient=c, depth=1))
-        materials.append(growth_triangle(p1=mp22, p2=last_material.p4, p3=mp32, coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=last_material.p1, p2=mp12, p3=mp32, h=h_new_2,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp12, p2=last_material.p2, p3=mp22, h=h_new_2,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp22, p2=last_material.p4, p3=mp32, h=h_new_2,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
 
         f_c = calc_centroid(
             Point(mp12.x * c, mp12.y * c, mp12.z * c),
@@ -261,9 +261,9 @@ def build(iter_count: int, limit_value: float) -> Builder:
         materials.append(cal_tetrahedron(mp12, mp22, mp32, h_new_1, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
         # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
-        materials.append(growth_triangle(p1=last_material.p2, p2=mp13, p3=mp33, coefficient=c, depth=1))
-        materials.append(growth_triangle(p1=mp13, p2=last_material.p3, p3=mp23, coefficient=c, depth=1))
-        materials.append(growth_triangle(p1=mp23, p2=last_material.p4, p3=mp33, coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=last_material.p2, p2=mp13, p3=mp33, h=h_new_3,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp13, p2=last_material.p3, p3=mp23, h=h_new_3,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp23, p2=last_material.p4, p3=mp33, h=h_new_3,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
 
         f_c = calc_centroid(
             Point(mp13.x * c, mp13.y * c, mp13.z * c),
@@ -272,9 +272,9 @@ def build(iter_count: int, limit_value: float) -> Builder:
         materials.append(cal_tetrahedron(mp13, mp23, mp33, h_new_3, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
         # edges.append({"edges": [[p2, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
-        materials.append(growth_triangle(p1=last_material.p1, p2=mp14, p3=mp34, coefficient=c, depth=1))
-        materials.append(growth_triangle(p1=mp14, p2=last_material.p3, p3=mp24, coefficient=c, depth=1))
-        materials.append(growth_triangle(p1=mp24, p2=last_material.p4, p3=mp34, coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=last_material.p1, p2=mp14, p3=mp34, h=h_new_4,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp14, p2=last_material.p3, p3=mp24, h=h_new_4,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp24, p2=last_material.p4, p3=mp34, h=h_new_4,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
 
         f_c = calc_centroid(
             Point(mp14.x * c, mp14.y * c, mp14.z * c),
@@ -284,6 +284,61 @@ def build(iter_count: int, limit_value: float) -> Builder:
         # edges.append({"edges": [[p1, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         fractal.append_material(materials)
+
+    # preparation
+    edges = []
+    for material in fractal.materials[-1]:
+        if material.p4 == None:
+            edges.append({
+                "edges": [material.p1, material.p2, material.p3],
+                "height": material.h,
+                "normal": (material.A, material.B, material.C)
+            })
+        else:
+            # pass
+            edges.append({
+                "edges": [material.p1, material.p2, material.p4],
+                "height": material.h,
+                "normal": (material.A, material.B, material.C)
+            })
+            edges.append({
+                "edges": [material.p1, material.p3, material.p4],
+                "height": material.h,
+                "normal": (material.A, material.B, material.C)
+            })
+            edges.append({
+                "edges": [material.p2, material.p3, material.p4],
+                "height": material.h,
+                "normal": (material.A, material.B, material.C)
+            })
+
+    current_depth = 1
+    while MAX_DEPTH - current_depth != 0:
+        c = 1
+        for i in range(iter_count):
+            materials = []
+
+            c += ordinary_coefficient
+            c2 = coefficient + coefficient * i
+
+            for edgs in edges:
+                mp1 = calc_midpoint(edgs["edges"][0], edgs["edges"][1])
+                mp2 = calc_midpoint(edgs["edges"][1], edgs["edges"][2])
+                mp3 = calc_midpoint(edgs["edges"][2], edgs["edges"][0])
+                h_new = edgs["height"] * calc_distance(mp1, mp2) / calc_distance(edgs["edges"][0], edgs["edges"][1])
+
+                materials.append(growth_triangle(p1=edgs["edges"][0], p2=mp1, p3=mp3, h=h_new, n_prev=edgs["normal"], coefficient=c, depth=1))
+                materials.append(growth_triangle(p1=mp1, p2=edgs["edges"][1], p3=mp2, h=h_new, n_prev=edgs["normal"], coefficient=c, depth=1))
+                materials.append(growth_triangle(p1=mp2, p2=edgs["edges"][2], p3=mp3, h=h_new, n_prev=edgs["normal"], coefficient=c, depth=1))
+
+                f_c = calc_centroid(
+                    Point(mp1.x * c, mp1.y * c, mp1.z * c),
+                    Point(mp2.x * c, mp2.y * c, mp2.z * c),
+                    Point(mp3.x * c, mp3.y * c, mp3.z * c))
+                materials.append(
+                    cal_tetrahedron(mp1, mp2, mp3, h_new, edgs["normal"], coefficient=c2, depth=1, f_c=f_c))
+            fractal.append_material(materials)
+        current_depth += 1
 
     # edges.append(cal_tetrahedron_1(mp1, mp2, mp3, h_new, (A, B, C), self.surface, thickness=4, color=color.azure))
     # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p3, mp3]], "normal": (-A, -B, -C), "height": h_new})
@@ -362,7 +417,7 @@ def cal_tetrahedron_1(p1: Point, p2: Point, p3: Point, h: float, coefficient: fl
     vertices = [[p11.x, p11.y, p11.z], [p22.x, p22.y, p22.z], [p33.x, p33.y, p33.z], [p4.x, p4.y, p4.z]]
     triangles = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
 
-    return MaterialState(depth, vertices, triangles, p1=p1, p2=p2, p3=p3, p4=p4, h=h, A=A, B=B, C=C)
+    return MaterialState(depth, vertices, triangles, p1=p11, p2=p22, p3=p33, p4=p4, h=h1, A=A, B=B, C=C)
 
 
 def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], coefficient: float, depth: int, f_c: Point) -> MaterialState:
@@ -403,26 +458,22 @@ def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[flo
 
     p4 = find_p4_point(A, B, C, N, h1, p7)
 
-    vertiti = [[p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z], [p3.x, p3.y, p3.z], [p4.x, p4.y, p4.z]]
-    trititi = [[0, 1, 2, 0], [0, 1, 3, 0], [0, 2, 3, 0], [1, 2, 3, 1]]
-
     vertices = [[p11.x, p11.y, p11.z], [p22.x, p22.y, p22.z], [p33.x, p33.y, p33.z], [p4.x, p4.y, p4.z]]
     triangles = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
 
-    return MaterialState(depth, vertices, triangles, p1=p1, p2=p2, p3=p3, p4=p4, h=h, A=A, B=B, C=C)
+    return MaterialState(depth, vertices, triangles, p1=p11, p2=p22, p3=p33, p4=p4, h=h1, A=A, B=B, C=C)
 
 
-def growth_triangle(p1: Point, p2: Point, p3: Point, coefficient: float, depth: int):
+def growth_triangle(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], coefficient: float, depth: int):
     p11 = Point(p1.x * coefficient, p1.y * coefficient, p1.z * coefficient)
     p22 = Point(p2.x * coefficient, p2.y * coefficient, p2.z * coefficient)
     p33 = Point(p3.x * coefficient, p3.y * coefficient, p3.z * coefficient)
-
-    print(Line(p11, p22).length())
+    h1 = h * coefficient
 
     vertices = [[p11.x, p11.y, p11.z], [p22.x, p22.y, p22.z], [p33.x, p33.y, p33.z]]
     triangles = [[0, 1], [1, 2], [2, 0]]
 
-    return MaterialState(depth, vertices, triangles, p1=p11, p2=p22, p3=p33)
+    return MaterialState(depth, vertices, triangles, p1=p11, p2=p22, p3=p33, h=h1, A=n_prev[0], B=n_prev[1], C=n_prev[2])
 
 
 def calc_centroid(p1: Point, p2: Point, p3: Point) -> Point:
