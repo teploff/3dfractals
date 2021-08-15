@@ -3,7 +3,7 @@ from ursina import Ursina, camera, window, Light, color, scene, Entity, held_key
 import math
 from ursina import Mesh
 
-MAX_DEPTH = 2
+MAX_DEPTH = 5
 ITER_COUNT = 10
 LIMIT_VALUE = 2.0
 ACCURACY = 0.001
@@ -20,7 +20,7 @@ class Game(Ursina):
         Light(type='ambient', color=(0.5, 0.5, 0.5, 1))
         Light(type='directional', color=(0.5, 0.5, 0.5, 1), direction=(1, 1, 1))
 
-        self.fractal = build(ITER_COUNT, LIMIT_VALUE)
+        self.fractal = one_phase_build(ITER_COUNT, LIMIT_VALUE)
         self.state = -1
 
         EditorCamera()
@@ -178,13 +178,18 @@ class Builder:
         return parent_entity
 
 
-def lol(koef: float, depth: int) -> [MaterialState]:
-    p1 = Point(0.0 * koef, 0.0 * koef, 0.0 * koef)
-    p2 = Point(0.5 * koef, (math.sqrt(3) / 2.0) * koef, 0.0 * koef)
-    p3 = Point(1.0 * koef, 0.0 * koef, 0.0 * koef)
-    h = (math.sqrt(2.0 / 3.0)) * koef
+def make_basic_tetrahedron(coefficient: float, depth: int) -> [MaterialState]:
+    """
+    Формирование базового тетраэдра (который растет из точки)
+    :param coefficient: Коэффициент представления фигуры
+    :param depth: заданная глубина
+    :return: Состояние фрактала на заданном коэфициенте
+    """
 
-    print(Line(p1, p2).length())
+    p1 = Point(0.0 * coefficient, 0.0 * coefficient, 0.0 * coefficient)
+    p2 = Point(0.5 * coefficient, (math.sqrt(3) / 2.0) * coefficient, 0.0 * coefficient)
+    p3 = Point(1.0 * coefficient, 0.0 * coefficient, 0.0 * coefficient)
+    h = (math.sqrt(2.0 / 3.0)) * coefficient
 
     A, B, C, N, n = make_coef_surface(p1, p2, p3)
     p5, p6 = median_case(p1, p2, p3)
@@ -199,14 +204,21 @@ def lol(koef: float, depth: int) -> [MaterialState]:
     return [MaterialState(depth, vertices, triangles, p1=p1, p2=p2, p3=p3, p4=p4, h=h, A=A, B=B, C=C)]
 
 
-def build(iter_count: int, limit_value: float) -> Builder:
+def one_phase_build(iter_count: int, limit_value: float) -> Builder:
+    """
+    Формирования фрактальной структуры однофазным адгоритмом роста
+    :param iter_count: Количество итераций, за которое необходимо вырастить каждый из компонентов фрактальной структуры
+    :param limit_value: Предельено значние стороны, до которого необходимо осуществлять рост
+    :return: Сформрованная фрактальная труктура по каждой из итераций
+    """
+
     fractal = Builder()
 
     coefficient = limit_value / float(iter_count)
 
     for i in range(iter_count):
         c = coefficient + coefficient * i
-        fractal.append_material(lol(c, 0))
+        fractal.append_material(make_basic_tetrahedron(c, 0))
 
     last_material = fractal.materials[-1][0]
     mp11 = calc_midpoint(last_material.p1, last_material.p2)
@@ -248,7 +260,6 @@ def build(iter_count: int, limit_value: float) -> Builder:
             Point(mp21.x * c, mp21.y * c, mp21.z * c),
             Point(mp31.x * c, mp31.y * c, mp31.z * c))
         materials.append(cal_tetrahedron_1(mp11, mp21, mp31, h_new_1, coefficient=c2, depth=1, f_c=f_c))
-        # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p3, mp3]], "normal": (-A, -B, -C), "height": h_new})
 
         materials.append(growth_triangle(p1=last_material.p1, p2=mp12, p3=mp32, h=h_new_2,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp12, p2=last_material.p2, p3=mp22, h=h_new_2,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
@@ -259,7 +270,6 @@ def build(iter_count: int, limit_value: float) -> Builder:
             Point(mp22.x * c, mp22.y * c, mp22.z * c),
             Point(mp32.x * c, mp32.y * c, mp32.z * c))
         materials.append(cal_tetrahedron(mp12, mp22, mp32, h_new_1, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
-        # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         materials.append(growth_triangle(p1=last_material.p2, p2=mp13, p3=mp33, h=h_new_3,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp13, p2=last_material.p3, p3=mp23, h=h_new_3,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
@@ -270,7 +280,6 @@ def build(iter_count: int, limit_value: float) -> Builder:
             Point(mp23.x * c, mp23.y * c, mp23.z * c),
             Point(mp33.x * c, mp33.y * c, mp33.z * c))
         materials.append(cal_tetrahedron(mp13, mp23, mp33, h_new_3, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
-        # edges.append({"edges": [[p2, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         materials.append(growth_triangle(p1=last_material.p1, p2=mp14, p3=mp34, h=h_new_4,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
         materials.append(growth_triangle(p1=mp14, p2=last_material.p3, p3=mp24, h=h_new_4,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
@@ -281,36 +290,11 @@ def build(iter_count: int, limit_value: float) -> Builder:
             Point(mp24.x * c, mp24.y * c, mp24.z * c),
             Point(mp34.x * c, mp34.y * c, mp34.z * c))
         materials.append(cal_tetrahedron(mp14, mp24, mp34, h_new_4, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
-        # edges.append({"edges": [[p1, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
 
         fractal.append_material(materials)
 
     # preparation
-    edges = []
-    for material in fractal.materials[-1]:
-        if material.p4 == None:
-            edges.append({
-                "edges": [material.p1, material.p2, material.p3],
-                "height": material.h,
-                "normal": (material.A, material.B, material.C)
-            })
-        else:
-            # pass
-            edges.append({
-                "edges": [material.p1, material.p2, material.p4],
-                "height": material.h,
-                "normal": (material.A, material.B, material.C)
-            })
-            edges.append({
-                "edges": [material.p1, material.p3, material.p4],
-                "height": material.h,
-                "normal": (material.A, material.B, material.C)
-            })
-            edges.append({
-                "edges": [material.p2, material.p3, material.p4],
-                "height": material.h,
-                "normal": (material.A, material.B, material.C)
-            })
+    edges = preparation_edges(fractal.materials[-1])
 
     current_depth = 1
     while MAX_DEPTH - current_depth != 0:
@@ -338,21 +322,42 @@ def build(iter_count: int, limit_value: float) -> Builder:
                 materials.append(
                     cal_tetrahedron(mp1, mp2, mp3, h_new, edgs["normal"], coefficient=c2, depth=1, f_c=f_c))
             fractal.append_material(materials)
+
+        # preparation
+        edges = preparation_edges(fractal.materials[-1])
         current_depth += 1
 
-    # edges.append(cal_tetrahedron_1(mp1, mp2, mp3, h_new, (A, B, C), self.surface, thickness=4, color=color.azure))
-    # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p3, mp3]], "normal": (-A, -B, -C), "height": h_new})
-
-    # edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (A, B, C), self.surface, thickness=4, color=color.azure))
-    # edges.append({"edges": [[p1, mp1, mp3], [mp1, p2, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
-
-    # edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (A, B, C), self.surface, thickness=4, color=color.azure))
-    # edges.append({"edges": [[p2, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
-
-    # edges.append(cal_tetrahedron(mp1, mp2, mp3, h_new, (A, B, C), self.surface, thickness=4, color=color.azure))
-    # edges.append({"edges": [[p1, mp1, mp3], [mp1, p3, mp2], [mp2, p4, mp3]], "normal": (A, B, C), "height": h_new})
-
     return fractal
+
+
+def preparation_edges(materials: List[MaterialState]) -> List[Dict]:
+    edges = []
+
+    for material in materials:
+        if material.p4 == None:
+            edges.append({
+                "edges": [material.p1, material.p2, material.p3],
+                "height": material.h,
+                "normal": (material.A, material.B, material.C)
+            })
+        else:
+            edges.append({
+                "edges": [material.p1, material.p2, material.p4],
+                "height": material.h,
+                "normal": (material.A, material.B, material.C)
+            })
+            edges.append({
+                "edges": [material.p1, material.p3, material.p4],
+                "height": material.h,
+                "normal": (material.A, material.B, material.C)
+            })
+            edges.append({
+                "edges": [material.p2, material.p3, material.p4],
+                "height": material.h,
+                "normal": (material.A, material.B, material.C)
+            })
+
+    return edges
 
 
 def calc_midpoint(p1: Point, p2: Point) -> Point:
