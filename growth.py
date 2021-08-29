@@ -4,8 +4,15 @@ import math
 from ursina import Mesh
 
 MAX_DEPTH = 5
-ITER_COUNT = 10
 LIMIT_VALUE = 2.0
+
+# ONE PHASE CONSTANTS
+ITER_COUNT = 10
+
+# SEVERAL PHASES CONSTANTS
+ITER_TETRAHEDRON_COUNT = 20
+ITER_TRIANGLE_COUNT = 10
+
 ACCURACY = 0.001
 
 
@@ -21,6 +28,7 @@ class Game(Ursina):
         Light(type='directional', color=(0.5, 0.5, 0.5, 1), direction=(1, 1, 1))
 
         self.fractal = one_phase_build(ITER_COUNT, LIMIT_VALUE)
+        # self.fractal = several_phases_build(ITER_TETRAHEDRON_COUNT, ITER_TRIANGLE_COUNT, LIMIT_VALUE)
         self.state = -1
 
         EditorCamera()
@@ -326,6 +334,95 @@ def one_phase_build(iter_count: int, limit_value: float) -> Builder:
         # preparation
         edges = preparation_edges(fractal.materials[-1])
         current_depth += 1
+
+    return fractal
+
+
+def several_phases_build(iter_tetrahedron_count: int, iter_triangle_count: int, limit_value: float) -> Builder:
+    fractal = Builder()
+
+    coefficient = limit_value / float(iter_tetrahedron_count)
+
+    for i in range(iter_tetrahedron_count):
+        c = coefficient + coefficient * i
+        fractal.append_material(make_basic_tetrahedron(c, 0))
+
+    last_material = fractal.materials[-1][0]
+    mp11 = calc_midpoint(last_material.p1, last_material.p2)
+    mp21 = calc_midpoint(last_material.p2, last_material.p3)
+    mp31 = calc_midpoint(last_material.p3, last_material.p1)
+    h_new_1 = last_material.h * calc_distance(mp11, mp21) / calc_distance(last_material.p1, last_material.p2)
+
+    mp12 = calc_midpoint(last_material.p1, last_material.p2)
+    mp22 = calc_midpoint(last_material.p2, last_material.p4)
+    mp32 = calc_midpoint(last_material.p4, last_material.p1)
+    h_new_2 = last_material.h * calc_distance(mp12, mp22) / calc_distance(last_material.p1, last_material.p2)
+
+    mp13 = calc_midpoint(last_material.p2, last_material.p3)
+    mp23 = calc_midpoint(last_material.p3, last_material.p4)
+    mp33 = calc_midpoint(last_material.p4, last_material.p2)
+    h_new_3 = last_material.h * calc_distance(mp13, mp23) / calc_distance(last_material.p2, last_material.p3)
+
+    mp14 = calc_midpoint(last_material.p1, last_material.p3)
+    mp24 = calc_midpoint(last_material.p3, last_material.p4)
+    mp34 = calc_midpoint(last_material.p4, last_material.p1)
+    h_new_4 = last_material.h * calc_distance(mp14, mp24) / calc_distance(last_material.p1, last_material.p3)
+
+    # Коэфициент роста не для тетраедра, а для трегуольника, образовашегося путем дроблении грани, на 4 треугольника
+    ordinary_coefficient = calc_distance(last_material.p1, mp11) / float(iter_triangle_count)
+
+    nodes = [
+        {}
+    ]
+
+    c = 1
+    for i in range(iter_count):
+        materials = []
+
+        c += ordinary_coefficient
+        c2 = coefficient + coefficient * i
+
+        materials.append(growth_triangle(p1=last_material.p1, p2=mp11, p3=mp31, h=h_new_1, n_prev=(-last_material.A, -last_material.B, -last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp11, p2=last_material.p2, p3=mp21, h=h_new_1,  n_prev=(-last_material.A, -last_material.B, -last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp21, p2=last_material.p3, p3=mp31, h=h_new_1,  n_prev=(-last_material.A, -last_material.B, -last_material.C), coefficient=c, depth=1))
+
+        f_c = calc_centroid(
+            Point(mp11.x * c, mp11.y * c, mp11.z * c),
+            Point(mp21.x * c, mp21.y * c, mp21.z * c),
+            Point(mp31.x * c, mp31.y * c, mp31.z * c))
+        materials.append(cal_tetrahedron_1(mp11, mp21, mp31, h_new_1, coefficient=c2, depth=1, f_c=f_c))
+
+        materials.append(growth_triangle(p1=last_material.p1, p2=mp12, p3=mp32, h=h_new_2,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp12, p2=last_material.p2, p3=mp22, h=h_new_2,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp22, p2=last_material.p4, p3=mp32, h=h_new_2,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+
+        f_c = calc_centroid(
+            Point(mp12.x * c, mp12.y * c, mp12.z * c),
+            Point(mp22.x * c, mp22.y * c, mp22.z * c),
+            Point(mp32.x * c, mp32.y * c, mp32.z * c))
+        materials.append(cal_tetrahedron(mp12, mp22, mp32, h_new_1, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
+
+        materials.append(growth_triangle(p1=last_material.p2, p2=mp13, p3=mp33, h=h_new_3,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp13, p2=last_material.p3, p3=mp23, h=h_new_3,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp23, p2=last_material.p4, p3=mp33, h=h_new_3,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+
+        f_c = calc_centroid(
+            Point(mp13.x * c, mp13.y * c, mp13.z * c),
+            Point(mp23.x * c, mp23.y * c, mp23.z * c),
+            Point(mp33.x * c, mp33.y * c, mp33.z * c))
+        materials.append(cal_tetrahedron(mp13, mp23, mp33, h_new_3, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
+
+        materials.append(growth_triangle(p1=last_material.p1, p2=mp14, p3=mp34, h=h_new_4,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp14, p2=last_material.p3, p3=mp24, h=h_new_4,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+        materials.append(growth_triangle(p1=mp24, p2=last_material.p4, p3=mp34, h=h_new_4,  n_prev=(last_material.A, last_material.B, last_material.C), coefficient=c, depth=1))
+
+        f_c = calc_centroid(
+            Point(mp14.x * c, mp14.y * c, mp14.z * c),
+            Point(mp24.x * c, mp24.y * c, mp24.z * c),
+            Point(mp34.x * c, mp34.y * c, mp34.z * c))
+        materials.append(cal_tetrahedron(mp14, mp24, mp34, h_new_4, (last_material.A, last_material.B, last_material.C), coefficient=c2, depth=1, f_c=f_c))
+
+        fractal.append_material(materials)
 
     return fractal
 
