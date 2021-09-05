@@ -8,6 +8,12 @@ class Point:
         self.y = y
         self.z = z
 
+    def __eq__(self, other):
+        if isinstance(other, Point):
+            return self.x == other.x and self.y == other.y and self.z == other.z
+
+        return False
+
     def __repr__(self):
         return f'({self.x}; {self.y}; {self.z})'
 
