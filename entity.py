@@ -58,7 +58,7 @@ class Face:
 
     @property
     def _y(self) -> float:
-        return (self.p3.x - self.p1.x) * (self.p2.z - self.p1.z) - (self.p2.x - self.p1.x) * (self.p2.z - self.p1.z)
+        return (self.p3.x - self.p1.x) * (self.p2.z - self.p1.z) - (self.p2.x - self.p1.x) * (self.p3.z - self.p1.z)
 
     @property
     def _z(self) -> float:
