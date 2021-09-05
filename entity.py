@@ -14,6 +14,10 @@ class Point:
 
         return False
 
+    def __mul__(self, other):
+        if isinstance(other, int) or isinstance(other, float):
+            return Point(self.x * other, self.y * other, self.z * other)
+
     def __repr__(self):
         return f'({self.x}; {self.y}; {self.z})'
 
@@ -66,7 +70,7 @@ class Face:
 
 
 class Tetrahedron:
-    def __init__(self, p1: Point, p2: Point, p3: Point, p4: Point, parent: Optional[Face]):
+    def __init__(self, p1: Point, p2: Point, p3: Point, p4: Point, parent: Face):
         self.p1 = p1
         self.p2 = p2
         self.p3 = p3

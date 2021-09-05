@@ -1,9 +1,10 @@
 import math
+from typing import Tuple
 
 from entity import Point, Line, Face, Tetrahedron
 
 
-MAX_DEPTH = 5
+MAX_DEPTH = 1
 LIMIT_VALUE = 2.0
 
 # ONE PHASE CONSTANTS
@@ -12,9 +13,13 @@ ITER_COUNT = 10
 
 class FractalState:
     def __init__(self):
+        self.points = []
         self.lines = []
         self.triangles = []
         self.tetrahedron = []
+
+    def append_points(self, point: Point):
+        self.points.append(point)
 
     def append_lines(self, line: Line):
         for l in self.lines:
@@ -45,6 +50,13 @@ class FractalState:
         for t in self.triangles:
             square += t.square
 
+        # особый случай, когда основание тетраэдра располагается на грани и для того, чтобы вычислить площадь фрактала,
+        # необходимо от площади грани (родительской), где располается тетраэдр, вычесть площадь основания тетраэдра.
+        # Т.к. у нас тэтраэдр и все площади тождественно равны. То досаточно найти всю площадь тетраэдра , поделить на 4
+        # и вычесть из площади ролительской грани это значение.
+        for tetra in self.tetrahedron:
+            square += tetra.parent.square - tetra.total_square / 4.0
+
         return square
 
     @property
@@ -65,8 +77,141 @@ def growth_triangle(p1: Point, p2: Point, p3: Point, coefficient: float) -> (Poi
     return new_p1, new_p2, new_p3
 
 
+def make_coef_surface(p1: Point, p2: Point, p3: Point) -> (float, float, float, float):
+    """
+    Вычисление коэффициентов плоскости A, B, C, проходящую через три точки p1, p2 и p3, и вектора нормали N к этой
+    плоскости.
+    :param p1: Первая точка
+    :param p2: Вторая точка
+    :param p3: Третья точка
+    :return: Коэффициенты клоскости A, B и C и проходящий через нее вектор нормали N
+    """
+
+    a = (p2.y - p1.y) * (p3.z - p1.z) - (p3.y - p1.y) * (p2.z - p1.z)
+    b = (p3.x - p1.x) * (p2.z - p1.z) - (p2.x - p1.x) * (p3.z - p1.z)
+    c = (p2.x - p1.x) * (p3.y - p1.y) - (p3.x - p1.x) * (p2.y - p1.y)
+
+    n = math.sqrt(math.pow(a, 2) + math.pow(b, 2) + math.pow(c, 2))
+
+    return a, b, c, n
+
+
+def calc_distance(p1: Point, p2: Point) -> float:
+    """
+
+    :param p1:
+    :param p2:
+    :return:
+    """
+
+    return math.sqrt(math.pow(p2.x - p1.x, 2) + math.pow(p2.y - p1.y, 2) + math.pow(p2.z - p1.z, 2))
+
+def calc_midpoint(p1: Point, p2: Point) -> Point:
+    """
+
+    :param p1:
+    :param p2:
+    :return:
+    """
+
+    return Point((p1.x + p2.x) / 2.0, (p1.y + p2.y) / 2.0, (p1.z + p2.z) / 2.0)
+
+
+def calc_centroid(p1: Point, p2: Point, p3: Point) -> Point:
+    return Point((p1.x + p2.x + p3.x) / 3.0, (p1.y + p2.y + p3.y) / 3.0, (p1.z + p2.z + p3.z) / 3.0)
+
+
+def median_case(p1: Point, p2: Point, p3: Point) -> (Point, Point):
+    """
+
+    :param p1:
+    :param p2:
+    :param p3:
+    :return:
+    """
+
+    p5 = Point((p2.x + p3.x) / 2.0, (p2.y + p3.y) / 2.0, (p2.z + p3.z) / 2.0)
+    p6 = Point((p1.x + p3.x) / 2.0, (p1.y + p3.y) / 2.0, (p1.z + p3.z) / 2.0)
+
+    return p5, p6
+
+
+def find_p7_point(p1: Point, p5: Point) -> Point:
+    """
+
+    :param p1:
+    :param p2:
+    :param p5:
+    :param p6:
+    :return:
+    """
+    x = p1.x + ((2 * (p5.x - p1.x)) / 3.0)
+    y = p1.y + ((2 * (p5.y - p1.y)) / 3.0)
+    z = p1.z + ((2 * (p5.z - p1.z)) / 3.0)
+
+    return Point(x, y, z)
+
+
+def find_p4_point(a: float, b: float, c: float, n: float, h: float, p7: Point) -> Point:
+    """
+
+    :param a:
+    :param b:
+    :param c:
+    :param n:
+    :param h:
+    :param p7:
+    :return:
+    """
+
+    x = p7.x + (a * h) / n
+    y = p7.y + (b * h) / n
+    z = p7.z + (c * h) / n
+
+    return Point(x, y, z)
+
+def cal_tetrahedron(p1: Point, p2: Point, p3: Point, h: float, n_prev: Tuple[float, float, float], coefficient: float, f_c: Point) -> (Point, Point, Point, Point,Tuple[float, float, float]):
+    p1 = Point(p1.x * coefficient, p1.y * coefficient, p1.z * coefficient)
+    p2 = Point(p2.x * coefficient, p2.y * coefficient, p2.z * coefficient)
+    p3 = Point(p3.x * coefficient, p3.y * coefficient, p3.z * coefficient)
+    h *= coefficient
+
+    s_c = calc_centroid(p1, p2, p3)
+
+    dx = f_c.x - s_c.x
+    dy = f_c.y - s_c.y
+    dz = f_c.z - s_c.z
+
+    p1.x += dx
+    p2.x += dx
+    p3.x += dx
+
+    p1.y += dy
+    p2.y += dy
+    p3.y += dy
+
+    p1.z += dz
+    p2.z += dz
+    p3.z += dz
+
+    A, B, C, N = make_coef_surface(p1, p2, p3)
+
+    if n_prev[0] * A + n_prev[1] * B + n_prev[2] * C < 0:
+        A *= -1
+        B *= -1
+        C *= -1
+
+    p5, p6 = median_case(p1, p2, p3)
+
+    p7 = find_p7_point(p1, p5)
+
+    p4 = find_p4_point(A, B, C, N, h, p7)
+
+    return p1, p2, p3, p4, (A, B, C)
+
+
 def calculate(iter_count: int, limit_value: float):
-    # начальные точки
+    # Начальные точки и высота
     s_p1 = Point(0.0, 0.0, 0.0)
     s_p2 = Point(0.5, (math.sqrt(3) / 2.0), 0.0)
     s_p3 = Point(1.0, 0.0, 0.0)
@@ -82,18 +227,151 @@ def calculate(iter_count: int, limit_value: float):
         fractal_state = FractalState()
         c = coefficient + coefficient * i
 
+        # растим точки и высоту для будущего тетраедра, чтоб сохряналась пропорция.
+        # Возможно иммет смысл высоты вычислять отдельно
         p1, p2, p3 = growth_triangle(s_p1, s_p2, s_p3, c)
 
+        # Добавляем точки
+        points = [p1, p2, p3]
+        for p in points:
+            fractal_state.append_points(p)
+
+        # Добаляем прямые
         lines = [Line(p1, p2), Line(p2, p3), Line(p1, p3)]
         for l in lines:
             fractal_state.append_lines(l)
 
+        # Добавляем треугольник
         fractal_state.append_triangles(Face(p1, p2, p3))
 
+        # Добавляем текущей состояние в список всех состояний на конкретной итерации
         fractal_states.append(fractal_state)
 
+    # Берем координаты выросшего треугольника треуголника
+    p1, p2, p3 = fractal_states[-1].points
+
+    # Вычисляем нормаль к плоскости [p1, p2, p3]
+    a, b, c, _ = make_coef_surface(p1, p2, p3)
+
+    active_edges = [{
+        "edges": [p1, p2, p3],
+        "normal": (a, b, c)
+    }]
+
+    coefficient_for_triangle = calc_distance(p1, calc_midpoint(p1, p2)) / float(iter_count)
+
+    current_depth = 0
+    while MAX_DEPTH - current_depth != 0:
+        # Коэфициент роста не для тетраедра, а для трегуольника, образовашегося путем дроблении грани, на 4 треугольника
+        c1 = 1
+
+        for i in range(iter_count):
+            fractal_state = FractalState()
+
+            c1 += coefficient_for_triangle
+            c2 = coefficient + coefficient * i
+
+            for edgs in active_edges:
+                # Находим серединные точки для каждой из прямых [p1; p2], [p2; p3] и [p3; p1]
+                # Так же находим пропорциональную высоту
+                mp1 = calc_midpoint(edgs["edges"][0], edgs["edges"][1])
+                mp2 = calc_midpoint(edgs["edges"][1], edgs["edges"][2])
+                mp3 = calc_midpoint(edgs["edges"][2], edgs["edges"][0])
+                # Знаем что высота в тетраеэдре равна такой пропорции от стороны
+                h = (math.sqrt(6.0)/3) * calc_distance(mp1, mp2)
+
+                # TODO: занимаемся треугольниками
+                # Растим точки и высоту левого треугольника [p1, mp1, mp3].
+
+                p1, p2, p3 = growth_triangle(edgs["edges"][0], mp1, mp3, c1)
+
+                # Добавляем точки
+                points = [p1, p2, p3]
+                for p in points:
+                    fractal_state.append_points(p)
+
+                # Добаляем прямые. Добавляем лишь к прямым реальные, невоображаемые. Так как в общей длине фрактала,
+                # длина [p2, p3] учитываться не должна
+                lines = [Line(p1, p2), Line(p1, p3)]
+                for l in lines:
+                    fractal_state.append_lines(l)
+
+                # Добавляем треугольник
+                fractal_state.append_triangles(Face(p1, p2, p3))
+
+                # Растим точки и высоту верхнего треугольника [mp1, p2, mp2].
+
+                p1, p2, p3 = growth_triangle(mp1, edgs["edges"][1], mp2, c1)
+
+                # Добавляем точки
+                points = [p1, p2, p3]
+                for p in points:
+                    fractal_state.append_points(p)
+
+                # Добаляем прямые. Добавляем лишь к прямым реальные, невоображаемые. Так как в общей длине фрактала,
+                # длина [p2, p3] учитываться не должна
+                lines = [Line(p1, p2), Line(p1, p3)]
+                for l in lines:
+                    fractal_state.append_lines(l)
+
+                # Добавляем треугольник
+                fractal_state.append_triangles(Face(p1, p2, p3))
+
+                # Растим точки и высоту правого треугольника [mp2, p3, mp3].
+
+                p1, p2, p3 = growth_triangle(mp2, edgs["edges"][2], mp3, c1)
+
+                # Добавляем точки
+                points = [p1, p2, p3]
+                for p in points:
+                    fractal_state.append_points(p)
+
+                # Добаляем прямые. Добавляем лишь к прямым реальные, невоображаемые. Так как в общей длине фрактала,
+                # длина [p2, p3] учитываться не должна
+                lines = [Line(p1, p2), Line(p1, p3)]
+                for l in lines:
+                    fractal_state.append_lines(l)
+
+                # Добавляем треугольник
+                fractal_state.append_triangles(Face(p1, p2, p3))
+
+                # TODO: занимаемся тетраэдром
+                # Вычисляем серидинную точку
+                f_c = calc_centroid(
+                    Point(mp1.x * c2, mp1.y * c2, mp1.z * c2),
+                    Point(mp2.x * c2, mp2.y * c2, mp2.z * c2),
+                    Point(mp3.x * c2, mp3.y * c2, mp3.z * c2))
+                p1, p2, p3, p4, coef_surface = cal_tetrahedron(mp1, mp2, mp3, h, edgs["normal"], coefficient=c2, f_c=f_c)
+
+                # Добавляем точки
+                points = [p1, p2, p3, p4]
+                for p in points:
+                    fractal_state.append_points(p)
+
+                # Добаляем прямые
+                lines = [Line(p1, p2), Line(p2, p3), Line(p1, p3), Line(p1, p4), Line(p2, p4), Line(p3, p4)]
+                for l in lines:
+                    fractal_state.append_lines(l)
+
+                # Добавляем треугольник
+                fractal_state.append_triangles(Face(p1, p4, p2))
+                fractal_state.append_triangles(Face(p1, p4, p3))
+                fractal_state.append_triangles(Face(p2, p4, p3))
+
+                # Добавляем тетраэдр
+                fractal_state.append_tetrahedron(Tetrahedron(p1, p2, p3, p4, parent=Face(mp1 * c1, mp2 * c1, mp3 * c1)))
+
+            fractal_states.append(fractal_state)
+
+        # тут необходимо подготовить данные для следующей итерации глубины фрактала, а также инкрементировать пройденную
+        # глубину
+        current_depth += 1
+
     for iteration, state in enumerate(fractal_states):
-        print(f'state = {iteration}. Total line length = {state.calc_line_length}. Total square = {state.calc_square}. Total volume = {state.calc_volume}')
+        print(f'state = {iteration}. '
+              f'Total line length = {state.calc_line_length}. '
+              f'Total square = {state.calc_square}. '
+              f'Total volume = {state.calc_volume}')
 
 
 if __name__ == '__main__':
