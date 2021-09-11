@@ -1,14 +1,17 @@
 import math
 from typing import Tuple
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 from entity import Point, Line, Face, Tetrahedron
 
 
-MAX_DEPTH = 1
+MAX_DEPTH = 4
 LIMIT_VALUE = 2.0
 
 # ONE PHASE CONSTANTS
-ITER_COUNT = 10
+ITER_COUNT = 100
 
 
 class FractalState:
@@ -261,15 +264,19 @@ def calculate(iter_count: int, limit_value: float):
     coefficient_for_triangle = calc_distance(p1, calc_midpoint(p1, p2)) / float(iter_count)
 
     current_depth = 0
+    prev_tetrahedron = []
     while MAX_DEPTH - current_depth != 0:
         # Коэфициент роста не для тетраедра, а для трегуольника, образовашегося путем дроблении грани, на 4 треугольника
         c1 = 1
 
+        temp_active_edges = []
         for i in range(iter_count):
             fractal_state = FractalState()
 
             c1 += coefficient_for_triangle
             c2 = coefficient + coefficient * i
+
+            temp_active_edges = []
 
             for edgs in active_edges:
                 # Находим серединные точки для каждой из прямых [p1; p2], [p2; p3] и [p3; p1]
@@ -282,7 +289,7 @@ def calculate(iter_count: int, limit_value: float):
 
                 # TODO: занимаемся треугольниками
                 # Растим точки и высоту левого треугольника [p1, mp1, mp3].
-
+                # ------------------------------------------------------------------------------------------------------
                 p1, p2, p3 = growth_triangle(edgs["edges"][0], mp1, mp3, c1)
 
                 # Добавляем точки
@@ -299,8 +306,14 @@ def calculate(iter_count: int, limit_value: float):
                 # Добавляем треугольник
                 fractal_state.append_triangles(Face(p1, p2, p3))
 
-                # Растим точки и высоту верхнего треугольника [mp1, p2, mp2].
+                # Добавляем в текущий список активных
+                temp_active_edges.append({
+                    "edges": [p1, p2, p3],
+                    "normal": edgs["normal"]
+                })
 
+                # Растим точки и высоту верхнего треугольника [mp1, p2, mp2].
+                # ------------------------------------------------------------------------------------------------------
                 p1, p2, p3 = growth_triangle(mp1, edgs["edges"][1], mp2, c1)
 
                 # Добавляем точки
@@ -317,8 +330,14 @@ def calculate(iter_count: int, limit_value: float):
                 # Добавляем треугольник
                 fractal_state.append_triangles(Face(p1, p2, p3))
 
-                # Растим точки и высоту правого треугольника [mp2, p3, mp3].
+                # Добавляем в текущий список активных
+                temp_active_edges.append({
+                    "edges": [p1, p2, p3],
+                    "normal": edgs["normal"]
+                })
 
+                # Растим точки и высоту правого треугольника [mp2, p3, mp3].
+                # ------------------------------------------------------------------------------------------------------
                 p1, p2, p3 = growth_triangle(mp2, edgs["edges"][2], mp3, c1)
 
                 # Добавляем точки
@@ -335,7 +354,14 @@ def calculate(iter_count: int, limit_value: float):
                 # Добавляем треугольник
                 fractal_state.append_triangles(Face(p1, p2, p3))
 
+                # Добавляем в текущий список активных
+                temp_active_edges.append({
+                    "edges": [p1, p2, p3],
+                    "normal": edgs["normal"]
+                })
+
                 # TODO: занимаемся тетраэдром
+                # ------------------------------------------------------------------------------------------------------
                 # Вычисляем серидинную точку
                 f_c = calc_centroid(
                     Point(mp1.x * c2, mp1.y * c2, mp1.z * c2),
@@ -353,7 +379,7 @@ def calculate(iter_count: int, limit_value: float):
                 for l in lines:
                     fractal_state.append_lines(l)
 
-                # Добавляем треугольник
+                # Добавляем треугольники
                 fractal_state.append_triangles(Face(p1, p4, p2))
                 fractal_state.append_triangles(Face(p1, p4, p3))
                 fractal_state.append_triangles(Face(p2, p4, p3))
@@ -361,17 +387,89 @@ def calculate(iter_count: int, limit_value: float):
                 # Добавляем тетраэдр
                 fractal_state.append_tetrahedron(Tetrahedron(p1, p2, p3, p4, parent=Face(mp1 * c1, mp2 * c1, mp3 * c1)))
 
+                # Добавляем в текущий список активных
+                temp_active_edges.append({
+                    "edges": [p1, p4, p2],
+                    "normal": coef_surface
+                })
+
+                temp_active_edges.append({
+                    "edges": [p1, p4, p3],
+                    "normal": coef_surface
+                })
+
+                temp_active_edges.append({
+                    "edges": [p2, p4, p3],
+                    "normal": coef_surface
+                })
+
+            # Так же добавляекм предыдущие, чтобы учесть предыдущий объем объем и его не потерять
+            for tetrahedron in prev_tetrahedron:
+                fractal_state.append_tetrahedron(tetrahedron)
+
             fractal_states.append(fractal_state)
 
         # тут необходимо подготовить данные для следующей итерации глубины фрактала, а также инкрементировать пройденную
         # глубину
+        active_edges = temp_active_edges
+        for tetra in fractal_states[-1].tetrahedron:
+            prev_tetrahedron.append(tetra)
         current_depth += 1
 
+    iterations = []
+    line_length = []
+    square = []
+    volume = []
+
     for iteration, state in enumerate(fractal_states):
+        iterations.append(iteration + 1)
+        line_length.append(state.calc_line_length)
+        square.append(state.calc_square)
+        volume.append(state.calc_volume)
         print(f'state = {iteration}. '
               f'Total line length = {state.calc_line_length}. '
               f'Total square = {state.calc_square}. '
               f'Total volume = {state.calc_volume}')
+
+    fig1, ax1 = plt.subplots()
+    ax1.plot(iterations, line_length, 'o-', label=r'$a$', c='black', linewidth=3)
+    fig2, ax2 = plt.subplots()
+    ax2.plot(iterations, square, 'X-', label=r'$a$', c='black', linewidth=3)
+    fig3, ax3 = plt.subplots()
+    ax3.plot(iterations, volume, '*-', label=r'$a$', c='black', linewidth=3)
+
+    ax1.grid(True)
+    ax2.grid(True)
+    ax3.grid(True)
+
+    ax1.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax1.set(xlabel='Число циклов роста, ед.', ylabel='Длина фрактальной линии, ед.')
+
+    ax2.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax2.set(xlabel='Число циклов роста, ед.', ylabel='Площадь фрактала, ед.')
+
+    ax3.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax3.set(xlabel='Число циклов роста, ед.', ylabel='Объем фрактала, ед.')
+
+    # setting label sizes after creation
+    ax1.xaxis.label.set_size(10)
+    ax1.yaxis.label.set_size(10)
+
+    ax2.xaxis.label.set_size(10)
+    ax2.yaxis.label.set_size(10)
+
+    ax3.xaxis.label.set_size(10)
+    ax3.yaxis.label.set_size(10)
+
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+    plt.legend(fontsize=15)
+
+    fig1.savefig("length.png")
+    fig2.savefig("square.png")
+    fig3.savefig("value.png")
+
+    plt.show()
 
 
 if __name__ == '__main__':
