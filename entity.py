@@ -1,5 +1,5 @@
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 
 class Point:
@@ -16,7 +16,19 @@ class Point:
 
     def __mul__(self, other):
         if isinstance(other, int) or isinstance(other, float):
-            return Point(self.x * other, self.y * other, self.z * other)
+            self.x *= other
+            self.y *= other
+            self.z *= other
+
+            return self
+
+    def __add__(self, other):
+        if isinstance(other, Tuple) or isinstance(other, Tuple):
+            self.x += other[0]
+            self.y += other[1]
+            self.z += other[2]
+
+            return self
 
     def __repr__(self):
         return f'({self.x}; {self.y}; {self.z})'
@@ -70,7 +82,7 @@ class Face:
 
 
 class Tetrahedron:
-    def __init__(self, p1: Point, p2: Point, p3: Point, p4: Point, parent: Face):
+    def __init__(self, p1: Point, p2: Point, p3: Point, p4: Point, parent: Optional[Face]):
         self.p1 = p1
         self.p2 = p2
         self.p3 = p3
@@ -109,8 +121,11 @@ class Tetrahedron:
         Pay attention that we don't need considering square which are on the parent face.
         :return: total tetrahedrom's square.
         """
-        # TODO: need take away square in the parent surface.
-        return self._face1.square + self._face2.square + self._face3.square + self._face4.square
+        if self.parent is None:
+            return self._face1.square + self._face2.square + self._face3.square + self._face4.square
+
+        # Если существует родиетельская грань, то мы дожны учесть разницу. Поэтому вычитаем одну из.
+        return self._face1.square + self._face2.square + self._face3.square - self._face4.square
 
     @property
     def volume(self):
