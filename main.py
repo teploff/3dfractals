@@ -410,6 +410,8 @@ def ray_tracing(x, y, poly):
 
 
 if __name__ == '__main__':
-    game = Game()
+    from visualization.visualizer import Game as G
+
+    game = G()
     update = game.update
     game.run()

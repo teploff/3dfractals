@@ -1,16 +1,10 @@
 import math
-from typing import Tuple
+from typing import List
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 from entity import Point, Line, Face, Tetrahedron
-
-MAX_DEPTH = 5
-LIMIT_VALUE = 2.0
-
-# ONE PHASE CONSTANTS
-ITER_COUNT = 100
+from visualization.entity import Model
 
 
 def make_coef_surface(p1: Point, p2: Point, p3: Point) -> (float, float, float, float):
@@ -154,7 +148,14 @@ def find_step_growth(start_len: float, final_len: float, iter_count: int, p: Poi
     return x, y, z
 
 
-def calculate(iter_count: int, limit_value: float):
+def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Model]]:
+    """
+    Вычисление однофазной модели
+    :param iter_count: количество итераций роста
+    :param limit_value: предальное значение отрезка
+    :param depth: глубина фраткальной структуры
+    :return:
+    """
     # Начальные точки тетраэдра и начальный коэфициент
     s_p1 = Point(0.0, 0.0, 0.0)
     s_p2 = Point(0.5, (math.sqrt(3) / 2.0), 0.0)
@@ -163,10 +164,8 @@ def calculate(iter_count: int, limit_value: float):
     s_p4 = find_tetrahedron_vertex(s_p1, s_p2, s_p3, s_h)
     s_coefficient = 0.05
 
-    # Значения предельной длины, погрешности и колечества цикла роста
-    a = 2.0
+    # Значения погрешности, которое будем сопоставлять при достижении отрезка нужной длины (а)
     fault = 0.001
-    circles_growth = 20
 
     # Начальные преобразования тетраэдра. Уменьшаем его четыре точки на коефициент s_coefficient
     s_p1 *= s_coefficient
@@ -179,10 +178,10 @@ def calculate(iter_count: int, limit_value: float):
 
     # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
     s_p_c = find_centroid(s_p1, s_p2, s_p3, s_p4)
-    delta_p1 = find_step_growth(s_len, a, circles_growth, s_p1, s_p_c)
-    delta_p2 = find_step_growth(s_len, a, circles_growth, s_p2, s_p_c)
-    delta_p3 = find_step_growth(s_len, a, circles_growth, s_p3, s_p_c)
-    delta_p4 = find_step_growth(s_len, a, circles_growth, s_p4, s_p_c)
+    delta_p1 = find_step_growth(s_len, limit_value, iter_count, s_p1, s_p_c)
+    delta_p2 = find_step_growth(s_len, limit_value, iter_count, s_p2, s_p_c)
+    delta_p3 = find_step_growth(s_len, limit_value, iter_count, s_p3, s_p_c)
+    delta_p4 = find_step_growth(s_len, limit_value, iter_count, s_p4, s_p_c)
 
     # Заводим массив тетрэдров
     tetrahedrons = [Tetrahedron(s_p1, s_p2, s_p3, s_p4, None)]
@@ -191,10 +190,14 @@ def calculate(iter_count: int, limit_value: float):
     square = []
     volume = []
     iterations = []
+    # Итерация роста полной фигуры. Необходима в будущем для визуализации величин длины, площади и объема фрактала
     global_i = 0
+    # Представление фигуры на заданной итерации роста. Необходимо для отображения движком ursina.
+    ursina_models = []
+
     # Если разница между текущей длиной отрезка тетраэдра и его пределом все еще больше погрешности - продолжаем
     # наращивать
-    while abs(Line(s_p1, s_p2).length - a) > fault:
+    while abs(Line(s_p1, s_p2).length - limit_value) > fault:
         # Собираем метрики
         # На первом этапе (росте одного лишь тетраэдра) - объем равен нулю. Так как начальный тетраэдр не считается
         # фракталом, а считается лишь его грань
@@ -206,6 +209,12 @@ def calculate(iter_count: int, limit_value: float):
         volume.append(v)
         ####
 
+        # Собираем примитивы для дальнейшей визуализации движком ursina.
+        v1 = [[s_p1.x, s_p1.y, s_p1.z], [s_p2.x, s_p2.y, s_p2.z], [s_p3.x, s_p3.y, s_p3.z], [s_p4.x, s_p4.y, s_p4.z]]
+        t1 = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
+        ursina_models.append([Model(vertices=v1, triangles=t1)])
+
+        # Инкрементируем каждую точку тетраэдра на величину, вычисленную до
         s_p1 += delta_p1
         s_p2 += delta_p2
         s_p3 += delta_p3
@@ -227,22 +236,23 @@ def calculate(iter_count: int, limit_value: float):
 
     triangles = [Face(s_p1, s_p2, s_p3), Face(s_p1, s_p4, s_p2), Face(s_p1, s_p4, s_p3), Face(s_p2, s_p4, s_p3)]
     increments = [[delta_p1, delta_p2, delta_p3, delta_p4]]
-    limits = [a * 2]
+    # необхоимо обновить шаг роста, ведь финальная длина поменяется на x2
+    limits = [limit_value * 2]
 
     current_depth = 0
-    while MAX_DEPTH - current_depth != 0:
-        # необхоимо обновить шаг роста, ведь финальная длина поменяется на x2
+    while depth - current_depth != 0:
         for i, tetrahedron in enumerate(tetrahedrons):
             # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
             s_p_c = find_centroid(tetrahedron.p1, tetrahedron.p2, tetrahedron.p3, tetrahedron.p4)
             s_len = Line(tetrahedron.p1, tetrahedron.p2).length
 
             # Пересчитываем дельты
-            delta_p1 = find_step_growth(s_len, s_len * 2, circles_growth, tetrahedron.p1, s_p_c)
-            delta_p2 = find_step_growth(s_len, s_len * 2, circles_growth, tetrahedron.p2, s_p_c)
-            delta_p3 = find_step_growth(s_len, s_len * 2, circles_growth, tetrahedron.p3, s_p_c)
-            delta_p4 = find_step_growth(s_len, s_len * 2, circles_growth, tetrahedron.p4, s_p_c)
+            delta_p1 = find_step_growth(s_len, s_len * 2, iter_count, tetrahedron.p1, s_p_c)
+            delta_p2 = find_step_growth(s_len, s_len * 2, iter_count, tetrahedron.p2, s_p_c)
+            delta_p3 = find_step_growth(s_len, s_len * 2, iter_count, tetrahedron.p3, s_p_c)
+            delta_p4 = find_step_growth(s_len, s_len * 2, iter_count, tetrahedron.p4, s_p_c)
 
+            # Записываем вычисленные инкрименты, относящиеся к конкретному тетраэдру, в список инкрементов
             increments[i] = [delta_p1, delta_p2, delta_p3, delta_p4]
 
         new_triangles = []
@@ -252,29 +262,34 @@ def calculate(iter_count: int, limit_value: float):
             mp1 = calc_midpoint(triangle.p1, triangle.p2)
             mp2 = calc_midpoint(triangle.p2, triangle.p3)
             mp3 = calc_midpoint(triangle.p1, triangle.p3)
-            # Знаем что высота в тетраеэдре равна такой пропорции от стороны
+            # Зная что высота в тетраеэдре равна такой пропорции от стороны, вычислим ее
             h = (math.sqrt(6.0) / 3) * calc_distance(mp1, mp2)
+            # Находим вершину тетраэдра
             p4 = find_tetrahedron_vertex(mp1, mp2, mp3, h)
 
-            # Начальные преобразования тетраэдра
+            # Начальные преобразования найденного тетраэдра тетраэдра
             mp1 *= s_coefficient
             mp2 *= s_coefficient
             mp3 *= s_coefficient
             p4 *= s_coefficient
 
+            # Высчитываем начальную длину, на основе которой будем вычислять шаг инкрементирования
             s_len = Line(mp1, mp2).length
 
             # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
             s_p_c = find_centroid(mp1, mp2, mp3, p4)
-            delta_p1 = find_step_growth(s_len, a, circles_growth, mp1, s_p_c)
-            delta_p2 = find_step_growth(s_len, a, circles_growth, mp2, s_p_c)
-            delta_p3 = find_step_growth(s_len, a, circles_growth, mp3, s_p_c)
-            delta_p4 = find_step_growth(s_len, a, circles_growth, p4, s_p_c)
+            delta_p1 = find_step_growth(s_len, limit_value, iter_count, mp1, s_p_c)
+            delta_p2 = find_step_growth(s_len, limit_value, iter_count, mp2, s_p_c)
+            delta_p3 = find_step_growth(s_len, limit_value, iter_count, mp3, s_p_c)
+            delta_p4 = find_step_growth(s_len, limit_value, iter_count, p4, s_p_c)
 
+            # Добавляем найденный и приобразованный тетраэдр в список всех тетраэдров
             tetrahedrons.append(Tetrahedron(mp1, mp2, mp3, p4, triangle))
+            # Добавляем список инриментов, относящихся к этому тетраэдру, в список общих инкрементов всех тетраэдров
             increments.append([delta_p1, delta_p2, delta_p3, delta_p4])
-            limits.append(a)
-            # Добавили треугольники, которые не лежат на тетраэдре
+            limits.append(limit_value)
+            # Добавили треугольники, которые не лежат на тетраэдре. Т.е. те, которые образовались путем установления
+            # поставновки нового тетраэдра на грань родительского.
             new_triangles.append(Face(triangle.p1, mp1, mp3))
             new_triangles.append(Face(mp1, triangle.p2, mp2))
             new_triangles.append(Face(mp2, triangle.p3, mp3))
@@ -285,9 +300,12 @@ def calculate(iter_count: int, limit_value: float):
 
         triangles = new_triangles
 
+        # Начинаем расти все существующие тетраэдры до предельного значения длины
         exist_no_growth = True
         while exist_no_growth:
             exist_no_growth = False
+            # Объявлем массив примитивов, относящихся к конкретной инетарции роста по всем тетраэдрам
+            ursina_curr_stage = []
 
             for i, tetrahedron in enumerate(tetrahedrons):
                 if abs(Line(tetrahedron.p1, tetrahedron.p2).length - limits[i]) > fault:
@@ -297,6 +315,17 @@ def calculate(iter_count: int, limit_value: float):
                     tetrahedron.p2 += increments[i][1]
                     tetrahedron.p3 += increments[i][2]
                     tetrahedron.p4 += increments[i][3]
+
+                # Собираем примитивы для дальнейшей визуализации
+                v1 = [[tetrahedron.p1.x, tetrahedron.p1.y, tetrahedron.p1.z],
+                      [tetrahedron.p2.x, tetrahedron.p2.y, tetrahedron.p2.z],
+                      [tetrahedron.p3.x, tetrahedron.p3.y, tetrahedron.p3.z],
+                      [tetrahedron.p4.x, tetrahedron.p4.y, tetrahedron.p4.z]
+                      ]
+                t1 = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
+                ursina_curr_stage.append(Model(vertices=v1, triangles=t1))
+
+            ursina_models.append(ursina_curr_stage)
 
             # Если не сделать такую проверку задублирует метрику, потому что не найдет ни одного тетраедра, которого
             # нужно расти, а он уже вырос:)
@@ -323,10 +352,12 @@ def calculate(iter_count: int, limit_value: float):
                 global_i += 1
                 iterations.append(global_i)
 
-        # Необходимо увеличить limit роста x2 для каждого из тетраэдров.
+        # Необходимо увеличить limit роста x2 для каждого из тетраэдров. Необходимо это потому, что нам необходимо
+        # продолжить рост, не смотря на то, что стороны тетраэдра выросли до значние a, a*2, a*4 и тд
         for i, _ in enumerate(limits):
             limits[i] *= 2
 
+        # Увеличиваем значение глубины, так как полный цикл роста прошли.
         current_depth += 1
 
     fig1, ax1 = plt.subplots()
@@ -369,6 +400,4 @@ def calculate(iter_count: int, limit_value: float):
 
     plt.show()
 
-
-if __name__ == '__main__':
-    calculate(ITER_COUNT, LIMIT_VALUE)
+    return ursina_models
