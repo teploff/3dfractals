@@ -2,9 +2,34 @@ import math
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy.optimize import curve_fit
 
 from entity import Point, Line, Face, Tetrahedron
 from visualization.entity import Model
+
+
+def real_square(fractal_depth: int, limit_value: float) -> float:
+    return (6 ** fractal_depth) * (math.sqrt(3)/4.0) * limit_value ** 2
+
+
+def real_value(fractal_depth: int, limit_value: float) -> float:
+    return 2 ** (3*fractal_depth) * ((limit_value ** 3) / 6 * math.sqrt(2))
+
+
+def make_interpolation(x: List[int], y: List[float]) -> np.ndarray:
+    """
+    Формирование интерполяции на существующем кортеже точек
+    :param x:
+    :param y:
+    :return:
+    """
+    x_train = np.array(x)
+    y_train = np.array(y)
+
+    [a_y_x, b_y_x], _ = curve_fit(lambda x1, a, b: a * np.exp(b * x1), x_train, y_train, p0=[0.01285, 0.0351])
+
+    return a_y_x * np.exp(b_y_x * x_train)
 
 
 def make_coef_surface(p1: Point, p2: Point, p3: Point) -> (float, float, float, float):
@@ -403,12 +428,19 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
         # Увеличиваем значение глубины, так как полный цикл роста прошли.
         current_depth += 1
 
+    y_square = make_interpolation(iterations, square)
+
+    y_volume = make_interpolation(iterations, volume)
+
+
     fig1, ax1 = plt.subplots()
-    ax1.plot(iterations, line_length, 'o-', label=r'$a$', c='black', linewidth=3)
+    ax1.plot(iterations, line_length, 'o', label=r'$a$', c='black', linewidth=1)
     fig2, ax2 = plt.subplots()
-    ax2.plot(iterations, square, 'X-', label=r'$a$', c='black', linewidth=3)
+    ax2.plot(iterations, square, 'X', label=r'$a$', c='black', linewidth=1)
+    ax2.plot(iterations, y_square, '-', label=r'$b$', c='red', linewidth=1)
     fig3, ax3 = plt.subplots()
-    ax3.plot(iterations, volume, '*-', label=r'$a$', c='black', linewidth=3)
+    ax3.plot(iterations, volume, '*', label=r'$a$', c='black', linewidth=1)
+    ax3.plot(iterations, y_volume, '-', label=r'$b$', c='red', linewidth=1)
 
     ax1.grid(True)
     ax2.grid(True)
