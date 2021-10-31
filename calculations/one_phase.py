@@ -273,6 +273,32 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
             mp3 *= s_coefficient
             p4 *= s_coefficient
 
+            # Необходимо выполнить параллельный перенос.
+            # Для этого вычислим центр родительской грани, на которой будет базировать новый тетраэдр
+            parent_centroid = calc_centroid(triangle.p1, triangle.p2, triangle.p3)
+            # И вычислим центр дочернего основания тетраэдра
+            child_centroid = calc_centroid(mp1, mp2, mp3)
+            # и осещетсвим парарелельный перенос путем инкеремнтирваония, каждой из точек дочернего тетраэдра
+            # на dx, dx и dz соотвественно
+            dx = parent_centroid.x - child_centroid.x
+            dy = parent_centroid.y - child_centroid.y
+            dz = parent_centroid.z - child_centroid.z
+
+            mp1.x += dx
+            mp2.x += dx
+            mp3.x += dx
+            p4.x += dx
+
+            mp1.y += dy
+            mp2.y += dy
+            mp3.y += dy
+            p4.y += dy
+
+            mp1.z += dz
+            mp2.z += dz
+            mp3.z += dz
+            p4.z += dz
+
             # Высчитываем начальную длину, на основе которой будем вычислять шаг инкрементирования
             s_len = Line(mp1, mp2).length
 
