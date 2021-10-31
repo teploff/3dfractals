@@ -1,5 +1,5 @@
 import math
-from typing import List
+from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 
@@ -101,8 +101,19 @@ def find_p4_point(a: float, b: float, c: float, n: float, h: float, p7: Point) -
     return Point(x, y, z)
 
 
-def find_tetrahedron_vertex(p1: Point, p2: Point, p3: Point, h: float) -> Point:
+def find_tetrahedron_vertex(p1: Point, p2: Point, p3: Point, h: float, parent_surface_k=None, is_special_case=False) -> (Point, Tuple[float, float, float]):
     a, b, c, n = make_coef_surface(p1, p2, p3)
+
+    if parent_surface_k is not None:
+        if is_special_case:
+            a *= -1
+            b *= -1
+            c *= -1
+        else:
+            if parent_surface_k[0] * a + parent_surface_k[1] * b + parent_surface_k[2] * c < 0:
+                a *= -1
+                b *= -1
+                c *= -1
 
     p5, p6 = median_case(p1, p2, p3)
 
@@ -110,7 +121,7 @@ def find_tetrahedron_vertex(p1: Point, p2: Point, p3: Point, h: float) -> Point:
 
     p4 = find_p4_point(a, b, c, n, h, p7)
 
-    return p4
+    return p4, (a, b, c)
 
 
 def find_centroid(p1: Point, p2: Point, p3: Point, p4: Point) -> Point:
@@ -156,12 +167,12 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     :param depth: глубина фраткальной структуры
     :return:
     """
-    # Начальные точки тетраэдра и начальный коэфициент
+    # Начальные точки тетраэдра, коэффициенты плоскости и начальный коэфициент для уменьшения фигуры
     s_p1 = Point(0.0, 0.0, 0.0)
     s_p2 = Point(0.5, (math.sqrt(3) / 2.0), 0.0)
     s_p3 = Point(1.0, 0.0, 0.0)
     s_h = math.sqrt(2.0 / 3.0) * 1
-    s_p4 = find_tetrahedron_vertex(s_p1, s_p2, s_p3, s_h)
+    s_p4, surface_k = find_tetrahedron_vertex(s_p1, s_p2, s_p3, s_h)
     s_coefficient = 0.05
 
     # Значения погрешности, которое будем сопоставлять при достижении отрезка нужной длины (а)
@@ -184,7 +195,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     delta_p4 = find_step_growth(s_len, limit_value, iter_count, s_p4, s_p_c)
 
     # Заводим массив тетрэдров
-    tetrahedrons = [Tetrahedron(s_p1, s_p2, s_p3, s_p4, None)]
+    tetrahedrons = [Tetrahedron(s_p1, s_p2, s_p3, s_p4, surface_k, None)]
 
     line_length = []
     square = []
@@ -234,7 +245,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     iterations.append(global_i)
     ####
 
-    triangles = [Face(s_p1, s_p2, s_p3), Face(s_p1, s_p4, s_p2), Face(s_p1, s_p4, s_p3), Face(s_p2, s_p4, s_p3)]
+    triangles = [Face(s_p1, s_p2, s_p3, tetrahedrons[0]), Face(s_p1, s_p4, s_p2, tetrahedrons[0]), Face(s_p1, s_p4, s_p3, tetrahedrons[0]), Face(s_p2, s_p4, s_p3, tetrahedrons[0])]
     increments = [[delta_p1, delta_p2, delta_p3, delta_p4]]
     # необхоимо обновить шаг роста, ведь финальная длина поменяется на x2
     limits = [limit_value * 2]
@@ -256,7 +267,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
             increments[i] = [delta_p1, delta_p2, delta_p3, delta_p4]
 
         new_triangles = []
-        for triangle in triangles:
+        for i, triangle in enumerate(triangles):
             # Находим серединные точки к прямым
             # Так же находим пропорциональную высоту
             mp1 = calc_midpoint(triangle.p1, triangle.p2)
@@ -265,39 +276,16 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
             # Зная что высота в тетраеэдре равна такой пропорции от стороны, вычислим ее
             h = (math.sqrt(6.0) / 3) * calc_distance(mp1, mp2)
             # Находим вершину тетраэдра
-            p4 = find_tetrahedron_vertex(mp1, mp2, mp3, h)
-
+            if current_depth == 0 and i == 0:
+                p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h, (triangle.parent.A, triangle.parent.B, triangle.parent.C), True)
+            else:
+                p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h,
+                                                        (triangle.parent.A, triangle.parent.B, triangle.parent.C))
             # Начальные преобразования найденного тетраэдра тетраэдра
             mp1 *= s_coefficient
             mp2 *= s_coefficient
             mp3 *= s_coefficient
             p4 *= s_coefficient
-
-            # Необходимо выполнить параллельный перенос.
-            # Для этого вычислим центр родительской грани, на которой будет базировать новый тетраэдр
-            parent_centroid = calc_centroid(triangle.p1, triangle.p2, triangle.p3)
-            # И вычислим центр дочернего основания тетраэдра
-            child_centroid = calc_centroid(mp1, mp2, mp3)
-            # и осещетсвим парарелельный перенос путем инкеремнтирваония, каждой из точек дочернего тетраэдра
-            # на dx, dx и dz соотвественно
-            dx = parent_centroid.x - child_centroid.x
-            dy = parent_centroid.y - child_centroid.y
-            dz = parent_centroid.z - child_centroid.z
-
-            mp1.x += dx
-            mp2.x += dx
-            mp3.x += dx
-            p4.x += dx
-
-            mp1.y += dy
-            mp2.y += dy
-            mp3.y += dy
-            p4.y += dy
-
-            mp1.z += dz
-            mp2.z += dz
-            mp3.z += dz
-            p4.z += dz
 
             # Высчитываем начальную длину, на основе которой будем вычислять шаг инкрементирования
             s_len = Line(mp1, mp2).length
@@ -310,19 +298,20 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
             delta_p4 = find_step_growth(s_len, limit_value, iter_count, p4, s_p_c)
 
             # Добавляем найденный и приобразованный тетраэдр в список всех тетраэдров
-            tetrahedrons.append(Tetrahedron(mp1, mp2, mp3, p4, triangle))
+            tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle)
+            tetrahedrons.append(tetrahedron)
             # Добавляем список инриментов, относящихся к этому тетраэдру, в список общих инкрементов всех тетраэдров
             increments.append([delta_p1, delta_p2, delta_p3, delta_p4])
             limits.append(limit_value)
             # Добавили треугольники, которые не лежат на тетраэдре. Т.е. те, которые образовались путем установления
             # поставновки нового тетраэдра на грань родительского.
-            new_triangles.append(Face(triangle.p1, mp1, mp3))
-            new_triangles.append(Face(mp1, triangle.p2, mp2))
-            new_triangles.append(Face(mp2, triangle.p3, mp3))
+            new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron))
+            new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron))
+            new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron))
             # Добавляем треугольники, который на тетраэдре без основания
-            new_triangles.append(Face(mp1, mp2, p4))
-            new_triangles.append(Face(mp1, mp3, p4))
-            new_triangles.append(Face(mp2, mp3, p4))
+            new_triangles.append(Face(mp1, mp2, p4, tetrahedron))
+            new_triangles.append(Face(mp1, mp3, p4, tetrahedron))
+            new_triangles.append(Face(mp2, mp3, p4, tetrahedron))
 
         triangles = new_triangles
 
@@ -341,6 +330,34 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                     tetrahedron.p2 += increments[i][1]
                     tetrahedron.p3 += increments[i][2]
                     tetrahedron.p4 += increments[i][3]
+
+                    # Если это не базовый тетраэдр, необходимо сделать параллельный перенос
+                    if tetrahedron.parent is not None:
+                        # Необходимо выполнить параллельный перенос.
+                        # Для этого вычислим центр родительской грани, на которой базируется тетраэдр
+                        parent_centroid = calc_centroid(tetrahedron.parent.p1, tetrahedron.parent.p2, tetrahedron.parent.p3)
+                        # И вычислим центр дочернего основания тетраэдра
+                        child_centroid = calc_centroid(tetrahedron.p1, tetrahedron.p2, tetrahedron.p3)
+                        # и осещетсвим парарелельный перенос путем инкеремнтирваония, каждой из точек дочернего тетраэдра
+                        # на dx, dx и dz соотвественно
+                        dx = parent_centroid.x - child_centroid.x
+                        dy = parent_centroid.y - child_centroid.y
+                        dz = parent_centroid.z - child_centroid.z
+
+                        tetrahedron.p1.x += dx
+                        tetrahedron.p2.x += dx
+                        tetrahedron.p3.x += dx
+                        tetrahedron.p4.x += dx
+
+                        tetrahedron.p1.y += dy
+                        tetrahedron.p2.y += dy
+                        tetrahedron.p3.y += dy
+                        tetrahedron.p4.y += dy
+
+                        tetrahedron.p1.z += dz
+                        tetrahedron.p2.z += dz
+                        tetrahedron.p3.z += dz
+                        tetrahedron.p4.z += dz
 
                 # Собираем примитивы для дальнейшей визуализации
                 v1 = [[tetrahedron.p1.x, tetrahedron.p1.y, tetrahedron.p1.z],

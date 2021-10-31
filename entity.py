@@ -48,10 +48,12 @@ class Line:
 
 
 class Face:
-    def __init__(self, p1: Point, p2: Point, p3: Point):
+    def __init__(self, p1: Point, p2: Point, p3: Point, parent=None):
         self.p1 = p1
         self.p2 = p2
         self.p3 = p3
+
+        self.parent = parent
 
         self._line1 = Line(p1, p2)
         self._line2 = Line(p2, p3)
@@ -82,11 +84,15 @@ class Face:
 
 
 class Tetrahedron:
-    def __init__(self, p1: Point, p2: Point, p3: Point, p4: Point, parent: Optional[Face]):
+    def __init__(self, p1: Point, p2: Point, p3: Point, p4: Point, surface_k: Tuple[float, float, float], parent: Optional[Face]):
         self.p1 = p1
         self.p2 = p2
         self.p3 = p3
         self.p4 = p4
+
+        self.A = surface_k[0]
+        self.B = surface_k[1]
+        self.C = surface_k[2]
 
         self.parent = parent
 
