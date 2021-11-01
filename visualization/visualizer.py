@@ -6,7 +6,7 @@ from ursina import Mesh
 from calculations.one_phase import calculate
 from visualization.entity import Builder
 
-MAX_DEPTH = 5
+MAX_DEPTH = 4
 LIMIT_VALUE = 2.0
 
 # ONE PHASE CONSTANTS

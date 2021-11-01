@@ -9,6 +9,11 @@ from entity import Point, Line, Face, Tetrahedron
 from visualization.entity import Model
 
 
+def real_length(fractal_depth: int, limit_value: float) -> float:
+    # TODO: Пока нет формулы
+    pass
+
+
 def real_square(fractal_depth: int, limit_value: float) -> float:
     return (6 ** fractal_depth) * (math.sqrt(3)/4.0) * limit_value ** 2
 
@@ -192,7 +197,8 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     :param depth: глубина фраткальной структуры
     :return:
     """
-    # Начальные точки тетраэдра, коэффициенты плоскости и начальный коэфициент для уменьшения фигуры
+    # Начальные точки тетраэдра, вектор нормали (с коэффициентами A, B и C), и начальный коэфициент
+    # для уменьшения фигуры
     s_p1 = Point(0.0, 0.0, 0.0)
     s_p2 = Point(0.5, (math.sqrt(3) / 2.0), 0.0)
     s_p3 = Point(1.0, 0.0, 0.0)
@@ -219,13 +225,16 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     delta_p3 = find_step_growth(s_len, limit_value, iter_count, s_p3, s_p_c)
     delta_p4 = find_step_growth(s_len, limit_value, iter_count, s_p4, s_p_c)
 
-    # Заводим массив тетрэдров
+    # Заводим массив тетрэдров и добавляем в него бозовый. В базовом указываем точки, коэфициенты и отсуствие
+    # родительской грани
     tetrahedrons = [Tetrahedron(s_p1, s_p2, s_p3, s_p4, surface_k, None)]
 
+    # Массивы для подсчета метрик: длины, площади и объема. Так же массив итераций роста.
+    iterations = []
     line_length = []
     square = []
     volume = []
-    iterations = []
+
     # Итерация роста полной фигуры. Необходима в будущем для визуализации величин длины, площади и объема фрактала
     global_i = 0
     # Представление фигуры на заданной итерации роста. Необходимо для отображения движком ursina.
@@ -270,11 +279,22 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     iterations.append(global_i)
     ####
 
-    triangles = [Face(s_p1, s_p2, s_p3, tetrahedrons[0]), Face(s_p1, s_p4, s_p2, tetrahedrons[0]), Face(s_p1, s_p4, s_p3, tetrahedrons[0]), Face(s_p2, s_p4, s_p3, tetrahedrons[0])]
+    # После того, как вырастили родительский тетраэдр. Формируем массив активных треугольников, на которых будем растить
+    # последующие тетраэдры. Одному треугольнику даем метку, чтоб отследить тетраэдры, которые учасвтсввуют в
+    # вычислении метрик общей фигуры: длины, площади и объема.
+    triangles = [
+        Face(s_p1, s_p2, s_p3, tetrahedrons[0], True),
+        Face(s_p1, s_p4, s_p2, tetrahedrons[0]),
+        Face(s_p1, s_p4, s_p3, tetrahedrons[0]),
+        Face(s_p2, s_p4, s_p3, tetrahedrons[0]),
+    ]
+    # Объявляем массив инкрементов для каждого из тетраэдра. В данном случае для базового тетраэдра
     increments = [[delta_p1, delta_p2, delta_p3, delta_p4]]
-    # необхоимо обновить шаг роста, ведь финальная длина поменяется на x2
+    # Объявляем массим пределов, до какого предела растить тетраэдр. Для базового тетраэдра необхоимо обновить шаг
+    # роста, ведь финальная длина поменяется на x2
     limits = [limit_value * 2]
 
+    # Задаем текущую глубину и растим фигуру до тех пор пока не достигнем заданную.
     current_depth = 0
     while depth - current_depth != 0:
         for i, tetrahedron in enumerate(tetrahedrons):
@@ -323,20 +343,38 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
             delta_p4 = find_step_growth(s_len, limit_value, iter_count, p4, s_p_c)
 
             # Добавляем найденный и приобразованный тетраэдр в список всех тетраэдров
-            tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle)
+            # Если треугольник помечен, как интересущий нас для сбора метрики, то помечаем тетраэдр и все произвольные
+            # от него трегольники
+            if triangle.mark:
+                tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle, True)
+            else:
+                # Иначе считаем его обычным
+                tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle)
             tetrahedrons.append(tetrahedron)
             # Добавляем список инриментов, относящихся к этому тетраэдру, в список общих инкрементов всех тетраэдров
             increments.append([delta_p1, delta_p2, delta_p3, delta_p4])
             limits.append(limit_value)
             # Добавили треугольники, которые не лежат на тетраэдре. Т.е. те, которые образовались путем установления
             # поставновки нового тетраэдра на грань родительского.
-            new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron))
-            new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron))
-            new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron))
-            # Добавляем треугольники, который на тетраэдре без основания
-            new_triangles.append(Face(mp1, mp2, p4, tetrahedron))
-            new_triangles.append(Face(mp1, mp3, p4, tetrahedron))
-            new_triangles.append(Face(mp2, mp3, p4, tetrahedron))
+            # Также проверяем, что треугольник помечен, как для сбора метрик. Если да, то помечаем все произвольные
+            # треугольники, как интересующие нас
+            if triangle.mark:
+                new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron, True))
+                new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron, True))
+                new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron, True))
+                # Добавляем треугольники, который на тетраэдре без основания
+                new_triangles.append(Face(mp1, mp2, p4, tetrahedron, True))
+                new_triangles.append(Face(mp1, mp3, p4, tetrahedron, True))
+                new_triangles.append(Face(mp2, mp3, p4, tetrahedron, True))
+            else:
+                # Иначе считаем треугольники как обычные
+                new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron))
+                new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron))
+                new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron))
+                # Добавляем треугольники, который на тетраэдре без основания
+                new_triangles.append(Face(mp1, mp2, p4, tetrahedron))
+                new_triangles.append(Face(mp1, mp3, p4, tetrahedron))
+                new_triangles.append(Face(mp2, mp3, p4, tetrahedron))
 
         triangles = new_triangles
 
@@ -403,17 +441,18 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 s = 0
                 v = 0
                 for i, t in enumerate(tetrahedrons):
-                    if i != 0:
-                        v += t.volume
-                    l += t.total_length
-                    s += t.total_square
-
-                # Так как мы строим фрактал с тетраэдра, а метрики мы должны собрнать с фрактала. Под фраткалом мы
-                # понимаем одну из граней начального третраэда, котороя притерпела некоторое изменение. Т.е. метрика с
-                # других граней начального тэтраэдра нас не интересует. Поэтому всю длину и площадь должны разделить на
-                # четыре соотвественно, а объем оставить прежним, так как первый тетраэдр мы не учитываем
-                line_length.append(l / 4.0)
-                square.append(s / 4.0)
+                    # Если это базовый тетраэдр: то объем не учитываем, площадь равна площади одной грани, как и длина
+                    if i == 0:
+                        l = t._face1.total_length
+                        s = t._face1.square
+                    else:
+                        if t.mark:
+                            v += t.volume
+                            l += t.total_length
+                            s += t.total_square
+                # Сохраняем метрики
+                line_length.append(l)
+                square.append(s)
                 volume.append(v)
                 ####
 
@@ -428,23 +467,35 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
         # Увеличиваем значение глубины, так как полный цикл роста прошли.
         current_depth += 1
 
-    y_square = make_interpolation(iterations, square)
+    # Вычисляем отношения S/L и V/S для обнаружения закономерностей.
+    s_l = [square[i] / line_length[i] for i in range(len(iterations))]
+    v_s = [volume[i] / square[i] for i in range(len(iterations))]
 
+    # Производим интерполяцию по найденным метрикам
+    y_length = make_interpolation(iterations, line_length)
+    y_square = make_interpolation(iterations, square)
     y_volume = make_interpolation(iterations, volume)
 
-
+    # Строим графики для найденных и апроксимируемыъ метрик.
     fig1, ax1 = plt.subplots()
     ax1.plot(iterations, line_length, 'o', label=r'$a$', c='black', linewidth=1)
+    ax1.plot(iterations, y_length, '-', label=r'$b$', c='red', linewidth=1)
     fig2, ax2 = plt.subplots()
     ax2.plot(iterations, square, 'X', label=r'$a$', c='black', linewidth=1)
     ax2.plot(iterations, y_square, '-', label=r'$b$', c='red', linewidth=1)
     fig3, ax3 = plt.subplots()
     ax3.plot(iterations, volume, '*', label=r'$a$', c='black', linewidth=1)
     ax3.plot(iterations, y_volume, '-', label=r'$b$', c='red', linewidth=1)
+    fig4, ax4 = plt.subplots()
+    ax4.plot(iterations, s_l, '*', label=r'$a$', c='black', linewidth=1)
+    fig5, ax5 = plt.subplots()
+    ax5.plot(iterations, v_s, '*', label=r'$a$', c='black', linewidth=1)
 
     ax1.grid(True)
     ax2.grid(True)
     ax3.grid(True)
+    ax4.grid(True)
+    ax5.grid(True)
 
     ax1.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax1.set(xlabel='Число циклов роста, ед.', ylabel='Длина фрактальной линии, ед.')
@@ -454,6 +505,12 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
 
     ax3.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax3.set(xlabel='Число циклов роста, ед.', ylabel='Объем фрактала, ед.')
+
+    ax4.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax4.set(xlabel='Число циклов роста, ед.', ylabel='Отношение S/L, ед.')
+
+    ax5.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax5.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/S, ед.')
     #
     # setting label sizes after creation
     # ax1.xaxis.label.set_size(10)
@@ -472,6 +529,8 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     fig1.savefig("length.png")
     fig2.savefig("square.png")
     fig3.savefig("value.png")
+    fig4.savefig("s_l.png")
+    fig5.savefig("v_s.png")
 
     plt.show()
 
