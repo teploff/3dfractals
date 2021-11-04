@@ -4,13 +4,14 @@ from ursina import Mesh
 
 
 from calculations.one_phase import calculate
+from calculations.several_phases import calculate as several_calc
 from visualization.entity import Builder
 
-MAX_DEPTH = 4
+MAX_DEPTH = 1
 LIMIT_VALUE = 2.0
 
 # ONE PHASE CONSTANTS
-ITER_COUNT = 30
+ITER_COUNT = 10
 
 # SEVERAL PHASES CONSTANTS
 ITER_TETRAHEDRON_COUNT = 30
@@ -30,8 +31,8 @@ class Game(Ursina):
         Light(type='ambient', color=(0.5, 0.5, 0.5, 1))
         Light(type='directional', color=(0.5, 0.5, 0.5, 1), direction=(1, 1, 1))
 
-        self.fractal = Builder(calculate(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH))
-        # self.fractal = several_phases_build(ITER_TETRAHEDRON_COUNT, ITER_TRIANGLE_COUNT, LIMIT_VALUE)
+        # self.fractal = Builder(calculate(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH))
+        self.fractal = Builder(several_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH))
         self.state = 0
 
         EditorCamera()

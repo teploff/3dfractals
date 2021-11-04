@@ -1,5 +1,6 @@
 import math
 from typing import Optional, Tuple
+import uuid
 
 
 class Point:
@@ -48,7 +49,7 @@ class Line:
 
 
 class Face:
-    def __init__(self, p1: Point, p2: Point, p3: Point, parent=None, mark=False):
+    def __init__(self, p1: Point, p2: Point, p3: Point, parent=None, mark=False, special=False):
         """
         Конструктор создания грани (треугольника).
         :param p1: Первая точка грани.
@@ -68,6 +69,7 @@ class Face:
         self.parent = parent
 
         self.mark = mark
+        self.special = special
 
         self._line1 = Line(p1, p2)
         self._line2 = Line(p2, p3)
@@ -113,6 +115,7 @@ class Tetrahedron:
         вычислении метрик общей фигуры: длины, площади и объема. TODO: Наверняка какой-либо пораждающий патерн или
         TODO: враппер над существующим классом позволил бы избежать данного параметра тут.
         """
+        self._id = str(uuid.uuid4())
 
         self.p1 = p1
         self.p2 = p2
@@ -141,6 +144,14 @@ class Tetrahedron:
 
     def __repr__(self):
         return f'Tetrahedron:\n {self._face1};\n {self._face2};\n {self._face3};\n {self._face4}'
+
+    @property
+    def id(self):
+        """
+
+        :return:
+        """
+        return self._id
 
     @property
     def total_length(self) -> float:
