@@ -290,26 +290,6 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
         Face(s_p1, s_p4, s_p3, tetrahedron),
         Face(s_p2, s_p4, s_p3, tetrahedron),
     ]
-    # Объявляем массив инкрементов для каждого из тетраэдра. В данном случае для базового тетраэдра
-    # Объявляем массим пределов, до какого предела растить тетраэдр. Для базового тетраэдра необхоимо обновить шаг
-    # роста, ведь финальная длина поменяется на x2
-    tetrahedron_info = {
-        "increments": {
-            tetrahedron.id: [delta_p1, delta_p2, delta_p3, delta_p4]
-        },
-        "limits": {
-            tetrahedron.id: limit_value * 2
-        },
-        "depths": {
-            "current": {
-                tetrahedron.id: 0
-            },
-            "maximum": {
-                tetrahedron.id: depth
-            }
-        },
-    }
-
     # Необходимо обновить инкрименты к базовому тетраэдру
     # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
     s_p_c = find_centroid(tetrahedron.p1, tetrahedron.p2, tetrahedron.p3, tetrahedron.p4)
@@ -324,95 +304,118 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     delta_p3 = find_step_growth(s_len, s_len * 2, iters, tetrahedron.p3, s_p_c)
     delta_p4 = find_step_growth(s_len, s_len * 2, iters, tetrahedron.p4, s_p_c)
 
+    # Объявляем массив инкрементов для каждого из тетраэдра. В данном случае для базового тетраэдра
+    # Объявляем массим пределов, до какого предела растить тетраэдр. Для базового тетраэдра необхоимо обновить шаг
+    # роста, ведь финальная длина поменяется на x2
+    tetrahedron_info = {
+        "increments": {
+            tetrahedron.id: [delta_p1, delta_p2, delta_p3, delta_p4]
+        },
+        "limits": {
+            tetrahedron.id: limit_value * 2
+        },
+        "iterations_count": {
+            tetrahedron.id: iters
+        },
+        "depths": {
+            "current": {
+                tetrahedron.id: 0
+            },
+            "maximum": {
+                tetrahedron.id: depth
+            }
+        },
+    }
+
     # Записываем вычисленные инкрименты, относящиеся к конкретному тетраэдру, в список инкрементов
     tetrahedron_info["increments"][tetrahedron.id] = [delta_p1, delta_p2, delta_p3, delta_p4]
 
+    # Обновим список активных треугольников
+    new_triangles = []
+    for i, triangle in enumerate(triangles):
+        # Бессмысленно рассматривать те треугольники, на основе которых тетраэдры не вырастут. Т.е. те, на основе
+        # которых должны вырасти тетраэдры, чьи глубины будут выше максимальной. Поэтому сделаем такую проверку.
+        if tetrahedron_info["depths"]["current"][triangle.parent.id] == depth:
+            continue
+
+        # Находим серединные точки к прямым
+        # Так же находим пропорциональную высоту
+        mp1 = calc_midpoint(triangle.p1, triangle.p2)
+        mp2 = calc_midpoint(triangle.p2, triangle.p3)
+        mp3 = calc_midpoint(triangle.p1, triangle.p3)
+        # Зная что высота в тетраеэдре равна такой пропорции от стороны, вычислим ее
+        h = (math.sqrt(6.0) / 3) * calc_distance(mp1, mp2)
+        # Находим вершину тетраэдра
+        if triangle.special:
+            p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h,
+                                                    (triangle.parent.A, triangle.parent.B, triangle.parent.C), True)
+        else:
+            p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h,
+                                                    (triangle.parent.A, triangle.parent.B, triangle.parent.C))
+        # Начальные преобразования найденного тетраэдра тетраэдра
+        mp1 *= s_coefficient
+        mp2 *= s_coefficient
+        mp3 *= s_coefficient
+        p4 *= s_coefficient
+
+        # Высчитываем начальную длину, на основе которой будем вычислять шаг инкрементирования
+        s_len = Line(mp1, mp2).length
+
+        # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
+        s_p_c = find_centroid(mp1, mp2, mp3, p4)
+
+        # Задаем рандомное колиечество итерация роста для тетраэдра
+        iters = random.randint(1, 5)*tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
+
+        delta_p1 = find_step_growth(s_len, limit_value, iters, mp1, s_p_c)
+        delta_p2 = find_step_growth(s_len, limit_value, iters, mp2, s_p_c)
+        delta_p3 = find_step_growth(s_len, limit_value, iters, mp3, s_p_c)
+        delta_p4 = find_step_growth(s_len, limit_value, iters, p4, s_p_c)
+
+        # Добавляем найденный и приобразованный тетраэдр в список всех тетраэдров
+        # Если треугольник помечен, как интересущий нас для сбора метрики, то помечаем тетраэдр и все произвольные
+        # от него трегольники
+        if triangle.mark:
+            tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle, True)
+        else:
+            # Иначе считаем его обычным
+            tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle)
+        tetrahedrons.append(tetrahedron)
+        # Добавляем список инриментов, относящихся к этому тетраэдру, в список общих инкрементов всех тетраэдров
+        tetrahedron_info["increments"][tetrahedron.id] = [delta_p1, delta_p2, delta_p3, delta_p4]
+        tetrahedron_info["limits"][tetrahedron.id] = limit_value
+
+        # Так же занесем максимальную (родительская глубина - 1) и текущую глубину фрактала -1
+        tetrahedron_info["depths"]["current"][tetrahedron.id] = -1
+        tetrahedron_info["depths"]["maximum"][tetrahedron.id] = tetrahedron_info["depths"]["maximum"][triangle.parent.id] - 1
+        tetrahedron_info["iterations_count"][tetrahedron.id] = iters
+
+        # Бессмысленно добавлять те треугольники, на основе которых тетраэдры не вырастут. Т.е. те, на основе
+        # которых должны вырасти тетраэдры, чьи глубины будут выше максимальной. Поэтому сделаем такую проверку.
+        if tetrahedron_info["depths"]["maximum"][tetrahedron.id] == 0:
+            continue
+
+        # # Добавили треугольники, которые не лежат на тетраэдре. Т.е. те, которые образовались путем установления
+        # # поставновки нового тетраэдра на грань родительского.
+        # # Также проверяем, что треугольник помечен, как для сбора метрик. Если да, то помечаем все произвольные
+        # # треугольники, как интересующие нас
+        # if triangle.mark:
+        #     new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron, True))
+        #     new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron, True))
+        #     new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron, True))
+        # else:
+        #     # Иначе считаем треугольники как обычные
+        #     new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron))
+        #     new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron))
+        #     new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron))
+
+    triangles = new_triangles
+
     # Выращиваем до тех пор пока существует хоть один тетраэдр, который не дорос до задонной глубины.
     while undergrown_tetrahedron_exists(tetrahedron_info["depths"]):
-        new_triangles = []
-        for i, triangle in enumerate(triangles):
-            # Находим серединные точки к прямым
-            # Так же находим пропорциональную высоту
-            mp1 = calc_midpoint(triangle.p1, triangle.p2)
-            mp2 = calc_midpoint(triangle.p2, triangle.p3)
-            mp3 = calc_midpoint(triangle.p1, triangle.p3)
-            # Зная что высота в тетраеэдре равна такой пропорции от стороны, вычислим ее
-            h = (math.sqrt(6.0) / 3) * calc_distance(mp1, mp2)
-            # Находим вершину тетраэдра
-            if triangle.special:
-                p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h,
-                                                        (triangle.parent.A, triangle.parent.B, triangle.parent.C), True)
-            else:
-                p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h,
-                                                        (triangle.parent.A, triangle.parent.B, triangle.parent.C))
-            # Начальные преобразования найденного тетраэдра тетраэдра
-            mp1 *= s_coefficient
-            mp2 *= s_coefficient
-            mp3 *= s_coefficient
-            p4 *= s_coefficient
-
-            # Высчитываем начальную длину, на основе которой будем вычислять шаг инкрементирования
-            s_len = Line(mp1, mp2).length
-
-            # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
-            s_p_c = find_centroid(mp1, mp2, mp3, p4)
-            # Задаем рандомное колиечество итерация роста для тетраэдра
-            iters = iter_count + random.randint(1, iter_count)
-
-            delta_p1 = find_step_growth(s_len, limit_value, iters, mp1, s_p_c)
-            delta_p2 = find_step_growth(s_len, limit_value, iters, mp2, s_p_c)
-            delta_p3 = find_step_growth(s_len, limit_value, iters, mp3, s_p_c)
-            delta_p4 = find_step_growth(s_len, limit_value, iters, p4, s_p_c)
-
-            # Добавляем найденный и приобразованный тетраэдр в список всех тетраэдров
-            # Если треугольник помечен, как интересущий нас для сбора метрики, то помечаем тетраэдр и все произвольные
-            # от него трегольники
-            if triangle.mark:
-                tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle, True)
-            else:
-                # Иначе считаем его обычным
-                tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle)
-            tetrahedrons.append(tetrahedron)
-            # Добавляем список инриментов, относящихся к этому тетраэдру, в список общих инкрементов всех тетраэдров
-            tetrahedron_info["increments"][tetrahedron.id] = [delta_p1, delta_p2, delta_p3, delta_p4]
-            tetrahedron_info["limits"][tetrahedron.id] = limit_value
-
-            # Так же занесем максимальную (родительская глубина - 1) и текущую глубину фрактала -1
-            tetrahedron_info["depths"]["current"][tetrahedron.id] = -1
-            tetrahedron_info["depths"]["maximum"][tetrahedron.id] = tetrahedron_info["depths"]["maximum"][triangle.parent.id] - 1
-
-            # Бессмысленно добавлять те треугольники, на основе которых тетраэдры не вырастут. Т.е. те, на основе
-            # которых должны вырасти тетраэдры, чьи глубины будут выше максимальной. Поэтому сделаем такую проверку.
-            if tetrahedron_info["depths"]["maximum"][tetrahedron.id] == 0:
-                continue
-
-            # Добавили треугольники, которые не лежат на тетраэдре. Т.е. те, которые образовались путем установления
-            # поставновки нового тетраэдра на грань родительского.
-            # Также проверяем, что треугольник помечен, как для сбора метрик. Если да, то помечаем все произвольные
-            # треугольники, как интересующие нас
-            if triangle.mark:
-                new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron, True))
-                new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron, True))
-                new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron, True))
-                # Добавляем треугольники, который на тетраэдре без основания
-                new_triangles.append(Face(mp1, mp2, p4, tetrahedron, True))
-                new_triangles.append(Face(mp1, mp3, p4, tetrahedron, True))
-                new_triangles.append(Face(mp2, mp3, p4, tetrahedron, True))
-            else:
-                # Иначе считаем треугольники как обычные
-                new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron))
-                new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron))
-                new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron))
-                # Добавляем треугольники, который на тетраэдре без основания
-                new_triangles.append(Face(mp1, mp2, p4, tetrahedron))
-                new_triangles.append(Face(mp1, mp3, p4, tetrahedron))
-                new_triangles.append(Face(mp2, mp3, p4, tetrahedron))
-
-        triangles = new_triangles
-
         # Объявлем массив примитивов, относящихся к конкретной инетарции роста по всем тетраэдрам
         ursina_curr_stage = []
-
+        new_triangles = []
         for i, tetrahedron in enumerate(tetrahedrons):
             # Проверяем нужно ли растить данному тетраэдру или он все таки уже вырос на заданную глубину
             if tetrahedron_info["depths"]["current"][tetrahedron.id] == tetrahedron_info["depths"]["maximum"][tetrahedron.id]:
@@ -428,8 +431,6 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 continue
 
             if abs(Line(tetrahedron.p1, tetrahedron.p2).length - tetrahedron_info["limits"][tetrahedron.id]) > fault:
-                exist_no_growth = True
-
                 tetrahedron.p1 += tetrahedron_info["increments"][tetrahedron.id][0]
                 tetrahedron.p2 += tetrahedron_info["increments"][tetrahedron.id][1]
                 tetrahedron.p3 += tetrahedron_info["increments"][tetrahedron.id][2]
@@ -481,14 +482,24 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 if tetrahedron_info["depths"]["current"][tetrahedron.id] == tetrahedron_info["depths"]["maximum"][tetrahedron.id]:
                     continue
 
+                # Тут необходимо определить является ли это новый тетраэдр, который дорос до предельного значения.
+                # Нужно это для того, чтобы пополнить список активных треугольников
+                rookie = False
+                tetrahedron_limit = tetrahedron_info["limits"][tetrahedron.id]
+                if tetrahedron_limit == limit_value:
+                    rookie = True
+
                 tetrahedron_info["limits"][tetrahedron.id] *= 2
                 # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
                 s_p_c = find_centroid(tetrahedron.p1, tetrahedron.p2, tetrahedron.p3, tetrahedron.p4)
                 s_len = Line(tetrahedron.p1, tetrahedron.p2).length
 
                 # Задаем рандомное колиечество итерация роста для тетраэдра
-                iters = iter_count + random.randint(1, iter_count)
-                print(f'Количество иетраций: {iters}')
+                if tetrahedron.parent is not None:
+                    iters = random.randint(1, 5) * tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
+                else:
+                    iters = iter_count
+
                 # Пересчитываем дельты
                 delta_p1 = find_step_growth(s_len, s_len * 2, iters, tetrahedron.p1, s_p_c)
                 delta_p2 = find_step_growth(s_len, s_len * 2, iters, tetrahedron.p2, s_p_c)
@@ -497,7 +508,27 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
 
                 # Записываем вычисленные инкрименты, относящиеся к конкретному тетраэдру, в список инкрементов
                 tetrahedron_info["increments"][tetrahedron.id] = [delta_p1, delta_p2, delta_p3, delta_p4]
+                # Обновляем количество итераций роста
+                tetrahedron_info["iterations_count"][tetrahedron.id] = iters
 
+                # Здесь необходимо дополнить список активных треугольников. Однако есть тонкий момент. Если тетраэдр
+                # впервые дорос до предельного значения limit_value, то именно он является донором новых треугольников
+                # для татраэдра
+                if rookie:
+                    if triangle.mark:
+                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron, True))
+                        new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron, True))
+                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron, True))
+                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron, True))
+                        new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron, True))
+                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron, True))
+                    else:
+                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron))
+                        new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron))
+                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron))
+                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron))
+                        new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron))
+                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron))
         ursina_models.append(ursina_curr_stage)
 
         #####
@@ -522,6 +553,102 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
 
         global_i += 1
         iterations.append(global_i)
+
+        # Добавляем найденные грани в список активных отрезков
+        triangles += new_triangles
+
+        # Необходимо прорядить список активных треугольников и добавить к ним новопоступившиеся и образовать новые тетраэдры
+        temp_triangles = []
+        for i, triangle in enumerate(triangles):
+            if i == 0:
+                print(abs(Line(triangle.p1, triangle.p2).length - limit_value))
+            if abs(Line(triangle.p1, triangle.p2).length - limit_value) > fault:
+                temp_triangles.append(triangle)
+            else:
+                # Находим серединные точки к прямым
+                # Так же находим пропорциональную высоту
+                mp1 = calc_midpoint(triangle.p1, triangle.p2)
+                mp2 = calc_midpoint(triangle.p2, triangle.p3)
+                mp3 = calc_midpoint(triangle.p1, triangle.p3)
+                # Зная что высота в тетраеэдре равна такой пропорции от стороны, вычислим ее
+                h = (math.sqrt(6.0) / 3) * calc_distance(mp1, mp2)
+                # Находим вершину тетраэдра
+                if triangle.special:
+                    p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h,
+                                                            (triangle.parent.A, triangle.parent.B,
+                                                             triangle.parent.C), True)
+                else:
+                    p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h,
+                                                            (triangle.parent.A, triangle.parent.B,
+                                                             triangle.parent.C))
+                # Начальные преобразования найденного тетраэдра
+                mp1 *= s_coefficient
+                mp2 *= s_coefficient
+                mp3 *= s_coefficient
+                p4 *= s_coefficient
+
+                # Высчитываем начальную длину, на основе которой будем вычислять шаг инкрементирования
+                s_len = Line(mp1, mp2).length
+
+                # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
+                s_p_c = find_centroid(mp1, mp2, mp3, p4)
+
+                # Задаем рандомное колиечество итерация роста для тетраэдра
+                iters = random.randint(1, 5) * tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
+
+                delta_p1 = find_step_growth(s_len, limit_value, iters, mp1, s_p_c)
+                delta_p2 = find_step_growth(s_len, limit_value, iters, mp2, s_p_c)
+                delta_p3 = find_step_growth(s_len, limit_value, iters, mp3, s_p_c)
+                delta_p4 = find_step_growth(s_len, limit_value, iters, p4, s_p_c)
+
+                # Добавляем найденный и приобразованный тетраэдр в список всех тетраэдров
+                # Если треугольник помечен, как интересущий нас для сбора метрики, то помечаем тетраэдр и все
+                # произвольные от него трегольники
+                if triangle.mark:
+                    tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle, True)
+                else:
+                    # Иначе считаем его обычным
+                    tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle)
+
+                tetrahedrons.append(tetrahedron)
+                # Добавляем список инриментов, относящихся к этому тетраэдру, в список общих инкрементов всех тетраэдров
+                tetrahedron_info["increments"][tetrahedron.id] = [delta_p1, delta_p2, delta_p3, delta_p4]
+                tetrahedron_info["limits"][tetrahedron.id] = limit_value
+
+                # Так же занесем максимальную (родительская глубина - 1) и текущую глубину фрактала -1
+                tetrahedron_info["depths"]["current"][tetrahedron.id] = -1
+                tetrahedron_info["depths"]["maximum"][tetrahedron.id] = tetrahedron_info["depths"]["maximum"][triangle.parent.id] - 1
+                tetrahedron_info["iterations_count"][tetrahedron.id] = iters
+
+                # Бессмысленно добавлять те треугольники, на основе которых тетраэдры не вырастут. Т.е. те, на основе
+                # которых должны вырасти тетраэдры, чьи глубины будут выше максимальной. Поэтому сделаем такую проверку.
+                if tetrahedron_info["depths"]["maximum"][tetrahedron.id] == 0:
+                    continue
+
+                # Добавили треугольники, которые не лежат на тетраэдре. Т.е. те, которые образовались путем установления
+                # поставновки нового тетраэдра на грань родительского.
+                # Также проверяем, что треугольник помечен, как для сбора метрик. Если да, то помечаем все произвольные
+                # треугольники, как интересующие нас
+                if triangle.mark:
+                    temp_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron, True))
+                    temp_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron, True))
+                    temp_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron, True))
+                    # Добавляем треугольники, который на тетраэдре без основания
+                    temp_triangles.append(Face(mp1, mp2, p4, tetrahedron, True))
+                    temp_triangles.append(Face(mp1, mp3, p4, tetrahedron, True))
+                    temp_triangles.append(Face(mp2, mp3, p4, tetrahedron, True))
+                else:
+                    # Иначе считаем треугольники как обычные
+                    temp_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron))
+                    temp_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron))
+                    temp_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron))
+                    # Добавляем треугольники, который на тетраэдре без основания
+                    temp_triangles.append(Face(mp1, mp2, p4, tetrahedron))
+                    temp_triangles.append(Face(mp1, mp3, p4, tetrahedron))
+                    temp_triangles.append(Face(mp2, mp3, p4, tetrahedron))
+
+        # Объединяем отфильтрованный список активных треугольников со списком новонайденных треугольников
+        triangles = temp_triangles
 
     # Вычисляем отношения S/L и V/S для обнаружения закономерностей.
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]

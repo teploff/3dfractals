@@ -7,11 +7,11 @@ from calculations.one_phase import calculate
 from calculations.several_phases import calculate as several_calc
 from visualization.entity import Builder
 
-MAX_DEPTH = 1
+MAX_DEPTH = 2
 LIMIT_VALUE = 2.0
 
 # ONE PHASE CONSTANTS
-ITER_COUNT = 10
+ITER_COUNT = 5
 
 # SEVERAL PHASES CONSTANTS
 ITER_TETRAHEDRON_COUNT = 30
