@@ -513,7 +513,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
 
                 # Здесь необходимо дополнить список активных треугольников. Однако есть тонкий момент. Если тетраэдр
                 # впервые дорос до предельного значения limit_value, то именно он является донором новых треугольников
-                # для татраэдра
+                # для татраэдра. Старые учитывать нельзя!
                 if rookie:
                     if triangle.mark:
                         new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron, True))
