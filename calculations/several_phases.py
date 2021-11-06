@@ -375,6 +375,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 # произвольные от него трегольники. # Иначе считаем его обычным
                 tetrahedron = Tetrahedron(mp1, mp2, mp3, p4, surface_k, triangle, triangle.mark)
                 tetrahedrons.append(tetrahedron)
+
                 # Добавляем список инриментов, относящихся к этому тетраэдру, в список общих инкрементов всех тетраэдров
                 tetrahedron_info["increments"][tetrahedron.id] = [delta_p1, delta_p2, delta_p3, delta_p4]
                 tetrahedron_info["limits"][tetrahedron.id] = limit_value
@@ -384,22 +385,6 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 tetrahedron_info["depths"]["maximum"][tetrahedron.id] = tetrahedron_info["depths"]["maximum"][triangle.parent.id] - 1
                 tetrahedron_info["iterations_count"][tetrahedron.id] = iters
 
-                # Бессмысленно добавлять те треугольники, на основе которых тетраэдры не вырастут. Т.е. те, на основе
-                # которых должны вырасти тетраэдры, чьи глубины будут выше максимальной. Поэтому сделаем такую проверку.
-                if tetrahedron_info["depths"]["maximum"][tetrahedron.id] == 0:
-                    continue
-
-                # Добавили треугольники, которые не лежат на тетраэдре. Т.е. те, которые образовались путем установления
-                # поставновки нового тетраэдра на грань родительского.
-                # Также проверяем, что треугольник помечен, как для сбора метрик. Если да, то помечаем все произвольные
-                # треугольники, как интересующие нас
-                temp_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron, triangle.mark))
-                temp_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron, triangle.mark))
-                temp_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron, triangle.mark))
-                # Добавляем треугольники, который на тетраэдре без основания
-                temp_triangles.append(Face(mp1, mp2, p4, tetrahedron, triangle.mark))
-                temp_triangles.append(Face(mp1, mp3, p4, tetrahedron, triangle.mark))
-                temp_triangles.append(Face(mp2, mp3, p4, tetrahedron, triangle.mark))
         # Объединяем отфильтрованный список активных треугольников со списком новонайденных треугольников
         triangles = temp_triangles
 
@@ -512,10 +497,11 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                     new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron, triangle.mark))
                     new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron, triangle.mark))
                     new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron, triangle.mark))
-
+        # Добавляем найденные грани в список активных отрезков
+        triangles += new_triangles
         ursina_models.append(ursina_curr_stage)
 
-        #####
+        # Собираем метрики
         l = 0
         s = 0
         v = 0
@@ -538,9 +524,6 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
             global_i += 1
             iterations.append(global_i)
         ####
-
-        # Добавляем найденные грани в список активных отрезков
-        triangles += new_triangles
 
     # Вычисляем отношения S/L и V/S для обнаружения закономерностей.
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]
