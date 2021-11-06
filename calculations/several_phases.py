@@ -332,7 +332,8 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
 
     # Выращиваем до тех пор пока существует хоть один тетраэдр, который не дорос до задонной глубины.
     while undergrown_tetrahedron_exists(tetrahedron_info["depths"]):
-        # Необходимо прорядить список активных треугольников и добавить к ним новопоступившиеся и образовать новые тетраэдры
+        # Необходимо прорядить список активных треугольников и добавить к ним новопоступившиеся и образовать новые
+        # тетраэдры
         temp_triangles = []
         for i, triangle in enumerate(triangles):
             if abs(Line(triangle.p1, triangle.p2).length - limit_value) > fault:
@@ -363,7 +364,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 s_p_c = find_centroid(mp1, mp2, mp3, p4)
 
                 # Задаем рандомное колиечество итерация роста для тетраэдра
-                iters = random.randint(1, 5) * tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
+                iters = tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
 
                 delta_p1 = find_step_growth(s_len, limit_value, iters, mp1, s_p_c)
                 delta_p2 = find_step_growth(s_len, limit_value, iters, mp2, s_p_c)
@@ -475,7 +476,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 # или нет. Нужно это для того, чтобы дочерние элементы не достраивались быстрее родительских, чтоб не
                 # было гонки с визуализацией
                 if tetrahedron.parent is not None:
-                    iters = random.randint(1, 5) * tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
+                    iters = tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
                 else:
                     iters = iter_count
 

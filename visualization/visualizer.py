@@ -4,7 +4,7 @@ from ursina import Ursina, camera, window, Light, color, scene, Entity, held_key
 from calculations.several_phases import calculate as several_phase_calc
 from visualization.entity import Builder
 
-MAX_DEPTH = 2
+MAX_DEPTH = 3
 LIMIT_VALUE = 2.0
 
 # ONE PHASE CONSTANTS
