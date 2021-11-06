@@ -519,16 +519,11 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                         new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron, True))
                         new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron, True))
                         new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron, True))
-                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron, True))
-                        new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron, True))
-                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron, True))
                     else:
                         new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron))
                         new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron))
                         new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron))
-                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron))
-                        new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron))
-                        new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron))
+
         ursina_models.append(ursina_curr_stage)
 
         #####
@@ -545,14 +540,15 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                     v += t.volume
                     l += t.total_length
                     s += t.total_square
-        # Сохраняем метрики
-        line_length.append(l)
-        square.append(s)
-        volume.append(v)
+        # Сохраняем метрики. Если метрика текущая ничем не отличается от предыдущей
+        # (а это означает, что все маркированные фишгуры мы просчитали), то учитывать ее не нужно.
+        if global_i == 0 or volume[-1] != v:
+            line_length.append(l)
+            square.append(s)
+            volume.append(v)
+            global_i += 1
+            iterations.append(global_i)
         ####
-
-        global_i += 1
-        iterations.append(global_i)
 
         # Добавляем найденные грани в список активных отрезков
         triangles += new_triangles
@@ -654,21 +650,21 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]
     v_s = [volume[i] / square[i] for i in range(len(iterations))]
 
-    # Производим интерполяцию по найденным метрикам
-    y_length = make_interpolation(iterations, line_length)
-    y_square = make_interpolation(iterations, square)
-    y_volume = make_interpolation(iterations, volume)
+    # # Производим интерполяцию по найденным метрикам
+    # y_length = make_interpolation(iterations, line_length)
+    # y_square = make_interpolation(iterations, square)
+    # y_volume = make_interpolation(iterations, volume)
 
     # Строим графики для найденных и апроксимируемыъ метрик.
     fig1, ax1 = plt.subplots()
     ax1.plot(iterations, line_length, 'o', label=r'$a$', c='black', linewidth=1)
-    ax1.plot(iterations, y_length, '-', label=r'$b$', c='red', linewidth=1)
+    # ax1.plot(iterations, y_length, '-', label=r'$b$', c='red', linewidth=1)
     fig2, ax2 = plt.subplots()
     ax2.plot(iterations, square, 'X', label=r'$a$', c='black', linewidth=1)
-    ax2.plot(iterations, y_square, '-', label=r'$b$', c='red', linewidth=1)
+    # ax2.plot(iterations, y_square, '-', label=r'$b$', c='red', linewidth=1)
     fig3, ax3 = plt.subplots()
     ax3.plot(iterations, volume, '*', label=r'$a$', c='black', linewidth=1)
-    ax3.plot(iterations, y_volume, '-', label=r'$b$', c='red', linewidth=1)
+    # ax3.plot(iterations, y_volume, '-', label=r'$b$', c='red', linewidth=1)
     fig4, ax4 = plt.subplots()
     ax4.plot(iterations, s_l, '*', label=r'$a$', c='black', linewidth=1)
     fig5, ax5 = plt.subplots()
