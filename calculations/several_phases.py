@@ -285,10 +285,10 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     # последующие тетраэдры. Одному треугольнику даем метку, чтоб отследить тетраэдры, которые учасвтсввуют в
     # вычислении метрик общей фигуры: длины, площади и объема.
     triangles = [
-        Face(s_p1, s_p2, s_p3, tetrahedron, True, True),
-        Face(s_p1, s_p4, s_p2, tetrahedron),
-        Face(s_p1, s_p4, s_p3, tetrahedron),
-        Face(s_p2, s_p4, s_p3, tetrahedron),
+        Face(s_p1, s_p2, s_p3, depth, tetrahedron, True, True),
+        Face(s_p1, s_p4, s_p2, depth, tetrahedron),
+        Face(s_p1, s_p4, s_p3, depth, tetrahedron),
+        Face(s_p2, s_p4, s_p3, depth, tetrahedron),
     ]
     # Необходимо обновить инкрименты к базовому тетраэдру
     # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
@@ -339,14 +339,14 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
         # тетраэдры
         temp_triangles = []
         for i, triangle in enumerate(triangles):
-            print(abs(Line(triangle.p1, triangle.p2).length - limit_value) )
+            print(abs(Line(triangle.p1, triangle.p2).length - limit_value))
             if abs(Line(triangle.p1, triangle.p2).length - limit_value) > fault:
                 temp_triangles.append(triangle)
             else:
                 # Тут необходима проверка. Так как выросший треугольник может быть неактуальным для дальнейшего роста
-                # по причине того, что родительский тетраэдр, на котором лежит данный треугольник, уже вырос на заднную
-                # глубину
-                if tetrahedron_info["depths"]["current"][triangle.parent.id] == tetrahedron_info["depths"]["maximum"][triangle.parent.id]:
+                # по причине того, что треугольник лежит на тетраэдре, глубина которого уже равна предельному значению
+                # роста
+                if triangle.max_depth == 0:
                     continue
 
                 # Находим серединные точки к прямым
@@ -393,7 +393,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
 
                 # Так же занесем максимальную (родительская глубина - 1) и текущую глубину фрактала -1
                 tetrahedron_info["depths"]["current"][tetrahedron.id] = -1
-                tetrahedron_info["depths"]["maximum"][tetrahedron.id] = tetrahedron_info["depths"]["maximum"][triangle.parent.id] - 1
+                tetrahedron_info["depths"]["maximum"][tetrahedron.id] = triangle.max_depth - 1
                 tetrahedron_info["iterations_count"][tetrahedron.id] = iters
 
                 # Так как каждая из граней, когда вырастает до значение limit_value должна делиться поровну на 4 части
@@ -404,9 +404,9 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 mp11 = calc_midpoint(triangle.p1, triangle.p2)
                 mp22 = calc_midpoint(triangle.p2, triangle.p3)
                 mp33 = calc_midpoint(triangle.p1, triangle.p3)
-                temp_triangles.append(Face(triangle.p1, mp11, mp33, triangle.parent, triangle.special))
-                temp_triangles.append(Face(mp11, triangle.p2, mp22, triangle.parent, triangle.special))
-                temp_triangles.append(Face(mp22, triangle.p3, mp33, triangle.parent, triangle.special))
+                temp_triangles.append(Face(triangle.p1, mp11, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special))
+                temp_triangles.append(Face(mp11, triangle.p2, mp22, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special))
+                temp_triangles.append(Face(mp22, triangle.p3, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special))
 
                 # Теперь заносим точку в словарь, чтоб отследить ее после роста и пересчитать
                 recalc_middle_points[mp11] = [triangle.p1, triangle.p2]
@@ -522,9 +522,10 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 # впервые дорос до предельного значения limit_value, то именно он является донором новых треугольников
                 # для татраэдра. Старые учитывать нельзя!
                 if rookie:
-                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, tetrahedron, triangle.mark))
-                    new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, tetrahedron, triangle.mark))
-                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, tetrahedron, triangle.mark))
+                    max_depth = tetrahedron_info["depths"]["maximum"][tetrahedron.id]
+                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, max_depth, tetrahedron, triangle.mark, triangle.special))
+                    new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, triangle.mark, triangle.special))
+                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, triangle.mark, triangle.special))
         # Добавляем найденные грани в список активных отрезков
         triangles += new_triangles
         ursina_models.append(ursina_curr_stage)

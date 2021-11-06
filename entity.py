@@ -52,12 +52,14 @@ class Line:
 
 
 class Face:
-    def __init__(self, p1: Point, p2: Point, p3: Point, parent=None, mark=False, special=False):
+    def __init__(self, p1: Point, p2: Point, p3: Point, max_depth: int, parent=None, mark=False, special=False):
         """
         Конструктор создания грани (треугольника).
         :param p1: Первая точка грани.
         :param p2: Вторая точка грани.
         :param p3: Третья точка грани.
+        :param max_depth: Максимальная глубина роста грани. Максимальная глубина = максимальной глубине тетраэдра,
+        на котором эта грань расположена.
         :param parent: Родительский объект. В данном контексте это тетраэдр. Используется для корректного вычисления
         паралелльного переноса между дочерним тетраэдром, основанием которого является та самая грань, и родительским.
         :param mark: Булевская метка. Используется для того, чтобы отследить тетраэдры, которые учасвтсввуют в
@@ -68,6 +70,7 @@ class Face:
         self.p1 = p1
         self.p2 = p2
         self.p3 = p3
+        self.max_depth = max_depth
 
         self.parent = parent
 
@@ -140,10 +143,12 @@ class Tetrahedron:
         self._line5 = Line(p2, p3)
         self._line6 = Line(p3, p1)
 
-        self._face1 = Face(p1, p4, p2)
-        self._face2 = Face(p2, p4, p3)
-        self._face3 = Face(p3, p4, p1)
-        self._face4 = Face(p1, p2, p3)
+        # TODO: Возможно необходимо обзавестись свойством max и current depth. Потому что тут 0 - это заглушка. Нет пока
+        # TODO: возможности передавать сюда максимальную глубину грани, лежащую на текущем тетраэдре
+        self._face1 = Face(p1, p4, p2, 0)
+        self._face2 = Face(p2, p4, p3, 0)
+        self._face3 = Face(p3, p4, p1, 0)
+        self._face4 = Face(p1, p2, p3, 0)
 
     def __repr__(self):
         return f'Tetrahedron:\n {self._face1};\n {self._face2};\n {self._face3};\n {self._face4}'
