@@ -283,10 +283,10 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     # последующие тетраэдры. Одному треугольнику даем метку, чтоб отследить тетраэдры, которые учасвтсввуют в
     # вычислении метрик общей фигуры: длины, площади и объема.
     triangles = [
-        Face(s_p1, s_p2, s_p3, tetrahedrons[0], True),
-        Face(s_p1, s_p4, s_p2, tetrahedrons[0]),
-        Face(s_p1, s_p4, s_p3, tetrahedrons[0]),
-        Face(s_p2, s_p4, s_p3, tetrahedrons[0]),
+        Face(s_p1, s_p2, s_p3, depth, tetrahedrons[0], True),
+        Face(s_p1, s_p4, s_p2, depth, tetrahedrons[0]),
+        Face(s_p1, s_p4, s_p3, depth, tetrahedrons[0]),
+        Face(s_p2, s_p4, s_p3, depth, tetrahedrons[0]),
     ]
     # Объявляем массив инкрементов для каждого из тетраэдра. В данном случае для базового тетраэдра
     increments = [[delta_p1, delta_p2, delta_p3, delta_p4]]
@@ -358,23 +358,24 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
             # поставновки нового тетраэдра на грань родительского.
             # Также проверяем, что треугольник помечен, как для сбора метрик. Если да, то помечаем все произвольные
             # треугольники, как интересующие нас
+            # TODO: лишняя, неправильная и неиспользуемая максимальная глубина. Подумать как отрефачить это
             if triangle.mark:
-                new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron, True))
-                new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron, True))
-                new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron, True))
+                new_triangles.append(Face(triangle.p1, mp1, mp3, current_depth, tetrahedron, True))
+                new_triangles.append(Face(mp1, triangle.p2, mp2, current_depth, tetrahedron, True))
+                new_triangles.append(Face(mp2, triangle.p3, mp3, current_depth, tetrahedron, True))
                 # Добавляем треугольники, который на тетраэдре без основания
-                new_triangles.append(Face(mp1, mp2, p4, tetrahedron, True))
-                new_triangles.append(Face(mp1, mp3, p4, tetrahedron, True))
-                new_triangles.append(Face(mp2, mp3, p4, tetrahedron, True))
+                new_triangles.append(Face(mp1, mp2, p4, current_depth, tetrahedron, True))
+                new_triangles.append(Face(mp1, mp3, p4, current_depth, tetrahedron, True))
+                new_triangles.append(Face(mp2, mp3, p4, current_depth, tetrahedron, True))
             else:
                 # Иначе считаем треугольники как обычные
-                new_triangles.append(Face(triangle.p1, mp1, mp3, tetrahedron))
-                new_triangles.append(Face(mp1, triangle.p2, mp2, tetrahedron))
-                new_triangles.append(Face(mp2, triangle.p3, mp3, tetrahedron))
+                new_triangles.append(Face(triangle.p1, mp1, mp3, current_depth, tetrahedron))
+                new_triangles.append(Face(mp1, triangle.p2, mp2, current_depth, tetrahedron))
+                new_triangles.append(Face(mp2, triangle.p3, mp3, current_depth, tetrahedron))
                 # Добавляем треугольники, который на тетраэдре без основания
-                new_triangles.append(Face(mp1, mp2, p4, tetrahedron))
-                new_triangles.append(Face(mp1, mp3, p4, tetrahedron))
-                new_triangles.append(Face(mp2, mp3, p4, tetrahedron))
+                new_triangles.append(Face(mp1, mp2, p4, current_depth, tetrahedron))
+                new_triangles.append(Face(mp1, mp3, p4, current_depth, tetrahedron))
+                new_triangles.append(Face(mp2, mp3, p4, current_depth, tetrahedron))
 
         triangles = new_triangles
 
