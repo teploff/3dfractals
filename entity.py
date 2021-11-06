@@ -34,6 +34,9 @@ class Point:
     def __repr__(self):
         return f'({self.x}; {self.y}; {self.z})'
 
+    def __hash__(self):
+        return id(self)
+
 
 class Line:
     def __init__(self, p1: Point, p2: Point):
