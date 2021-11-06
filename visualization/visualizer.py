@@ -1,17 +1,14 @@
 from ursina import Ursina, camera, window, Light, color, scene, Entity, held_keys, time, Mesh, EditorCamera, invoke
-import math
-from ursina import Mesh
 
-
-from calculations.one_phase import calculate
-from calculations.several_phases import calculate as several_calc
+# from calculations.one_phase import calculate as one_phase_calc
+from calculations.several_phases import calculate as several_phase_calc
 from visualization.entity import Builder
 
 MAX_DEPTH = 2
 LIMIT_VALUE = 2.0
 
 # ONE PHASE CONSTANTS
-ITER_COUNT = 5
+ITER_COUNT = 20
 
 # SEVERAL PHASES CONSTANTS
 ITER_TETRAHEDRON_COUNT = 30
@@ -31,8 +28,8 @@ class Game(Ursina):
         Light(type='ambient', color=(0.5, 0.5, 0.5, 1))
         Light(type='directional', color=(0.5, 0.5, 0.5, 1), direction=(1, 1, 1))
 
-        # self.fractal = Builder(calculate(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH))
-        self.fractal = Builder(several_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH))
+        # self.fractal = Builder(one_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH))
+        self.fractal = Builder(several_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH))
         self.state = 0
 
         EditorCamera()
@@ -44,7 +41,7 @@ class Game(Ursina):
     def update(self):
         pass
 
-    def input(self, key):
+    def _behaviour(self, key):
         if key == 'q':
             if self.state == 0:
                 return
@@ -59,6 +56,14 @@ class Game(Ursina):
 
             scene.clear()
             self.fractal.gen(self.state).model.generate()
+
+    def input_hold(self, key):
+        self._behaviour(key)
+
+        super().input_hold(key)
+
+    def input(self, key):
+        self._behaviour(key)
 
         super().input(key)
 
