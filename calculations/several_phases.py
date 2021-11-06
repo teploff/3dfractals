@@ -330,15 +330,25 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     # Записываем вычисленные инкрименты, относящиеся к конкретному тетраэдру, в список инкрементов
     tetrahedron_info["increments"][tetrahedron.id] = [delta_p1, delta_p2, delta_p3, delta_p4]
 
+    # Заведем словарь средних точек для того, чтобы после каждого роста фигур, пересчитать их основывася
+    recalc_middle_points = {}
+
     # Выращиваем до тех пор пока существует хоть один тетраэдр, который не дорос до задонной глубины.
     while undergrown_tetrahedron_exists(tetrahedron_info["depths"]):
         # Необходимо прорядить список активных треугольников и добавить к ним новопоступившиеся и образовать новые
         # тетраэдры
         temp_triangles = []
         for i, triangle in enumerate(triangles):
+            print(abs(Line(triangle.p1, triangle.p2).length - limit_value) )
             if abs(Line(triangle.p1, triangle.p2).length - limit_value) > fault:
                 temp_triangles.append(triangle)
             else:
+                # Тут необходима проверка. Так как выросший треугольник может быть неактуальным для дальнейшего роста
+                # по причине того, что родительский тетраэдр, на котором лежит данный треугольник, уже вырос на заднную
+                # глубину
+                if tetrahedron_info["depths"]["current"][triangle.parent.id] == tetrahedron_info["depths"]["maximum"][triangle.parent.id]:
+                    continue
+
                 # Находим серединные точки к прямым
                 # Так же находим пропорциональную высоту
                 mp1 = calc_midpoint(triangle.p1, triangle.p2)
@@ -385,6 +395,23 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 tetrahedron_info["depths"]["current"][tetrahedron.id] = -1
                 tetrahedron_info["depths"]["maximum"][tetrahedron.id] = tetrahedron_info["depths"]["maximum"][triangle.parent.id] - 1
                 tetrahedron_info["iterations_count"][tetrahedron.id] = iters
+
+                # Так как каждая из граней, когда вырастает до значение limit_value должна делиться поровну на 4 части
+                # (четыре равных треугольника) и на одну из них мы уже поставили тетраэдр (на центарльную). Существую
+                # еще три, которые расположены слева, справа и сверху над описанным. Добавим эти треугольники. Но сперва
+                # необходимо пересчитать центральные точки заново, потому что передыдущие уже были модифицированы
+                # операцией масштабирования
+                mp11 = calc_midpoint(triangle.p1, triangle.p2)
+                mp22 = calc_midpoint(triangle.p2, triangle.p3)
+                mp33 = calc_midpoint(triangle.p1, triangle.p3)
+                temp_triangles.append(Face(triangle.p1, mp11, mp33, triangle.parent, triangle.special))
+                temp_triangles.append(Face(mp11, triangle.p2, mp22, triangle.parent, triangle.special))
+                temp_triangles.append(Face(mp22, triangle.p3, mp33, triangle.parent, triangle.special))
+
+                # Теперь заносим точку в словарь, чтоб отследить ее после роста и пересчитать
+                recalc_middle_points[mp11] = [triangle.p1, triangle.p2]
+                recalc_middle_points[mp22] = [triangle.p2, triangle.p3]
+                recalc_middle_points[mp33] = [triangle.p1, triangle.p3]
 
         # Объединяем отфильтрованный список активных треугольников со списком новонайденных треугольников
         triangles = temp_triangles
@@ -501,6 +528,13 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
         # Добавляем найденные грани в список активных отрезков
         triangles += new_triangles
         ursina_models.append(ursina_curr_stage)
+
+        # Пересчитываем серединные точки
+        for point, points in recalc_middle_points.items():
+            p = calc_midpoint(points[0], points[1])
+            point.x = p.x
+            point.y = p.y
+            point.z = p.z
 
         # Собираем метрики
         l = 0
