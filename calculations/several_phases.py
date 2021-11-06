@@ -339,7 +339,6 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
         # тетраэдры
         temp_triangles = []
         for i, triangle in enumerate(triangles):
-            print(abs(Line(triangle.p1, triangle.p2).length - limit_value))
             if abs(Line(triangle.p1, triangle.p2).length - limit_value) > fault:
                 temp_triangles.append(triangle)
             else:
