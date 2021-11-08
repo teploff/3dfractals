@@ -52,7 +52,7 @@ class Line:
 
 
 class Face:
-    def __init__(self, p1: Point, p2: Point, p3: Point, max_depth: int, parent=None, mark=False, special=False):
+    def __init__(self, p1: Point, p2: Point, p3: Point, max_depth: int, parent=None, mark=False, special=False, limit=None):
         """
         Конструктор создания грани (треугольника).
         :param p1: Первая точка грани.
@@ -66,6 +66,8 @@ class Face:
         вычислении метрик общей фигуры: длины, площади и объема. Ведь производные тетраэдры берут свое начало с грани
         родительского тетраэдра (трегольника). TODO: Наверняка какой-либо пораждающий патерн или враппер над
         TODO: существующим классом позволил бы избежать данного параметра тут.
+        :param limit: Предельное значение, до которого должна дорасти грань. TODO: временное решение, возможно это
+        TODO: необходимо как-то обыграть в будущем
         """
         self.p1 = p1
         self.p2 = p2
@@ -76,6 +78,7 @@ class Face:
 
         self.mark = mark
         self.special = special
+        self.limit = limit
 
         self._line1 = Line(p1, p2)
         self._line2 = Line(p2, p3)
