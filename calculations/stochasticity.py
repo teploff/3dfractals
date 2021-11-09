@@ -299,7 +299,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     iters = iter_count + random.randint(1, iter_count)
 
     # Пересчитываем дельты
-    limit = limit_value + random.randint(1, int(limit_value)) / 2.0
+    limit = limit_value + random.uniform(0.25, 0.45)
     delta_p1 = find_step_growth(s_len, limit, iters, tetrahedron.p1, s_p_c)
     delta_p2 = find_step_growth(s_len, limit, iters, tetrahedron.p2, s_p_c)
     delta_p3 = find_step_growth(s_len, limit, iters, tetrahedron.p3, s_p_c)
@@ -374,12 +374,16 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
                 s_p_c = find_centroid(mp1, mp2, mp3, p4)
 
+                # TODO: Необходимо понимать, какой это из трегольников, если это тот, который образовался снаруже того,
+                # TODO: который в центре, то глубина количество иетраций должно расчитываться уже не от родительсвого
+                # TODO: а уже от тетраэдра, который поставили по середине. Иначе этот тетраэдр вырастит
+                # TODO: быстрее положенного и будет искажение с параллельным переносом
                 # Задаем рандомное колиечество итерация роста для тетраэдра
                 iters = tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
 
                 # Тут тонкий момент. Необходимо подобрать такой предел, чтоб онбыл : а) стохастичный б) но при этом не
                 # пересекался с родительским пределом, чтобы избежать наслоения
-                limit = random.uniform(triangle.limit, tetrahedron_info["limits"][triangle.parent.id]) / 2.0
+                limit = tetrahedron_info["limits"][triangle.parent.id] * random.uniform(0.25, 0.45)
                 print(f'Родительский limit = {tetrahedron_info["limits"][triangle.parent.id]}; Треугольника limit = {triangle.limit}; Дочерний limit = {limit}')
                 delta_p1 = find_step_growth(s_len, limit, iters, mp1, s_p_c)
                 delta_p2 = find_step_growth(s_len, limit, iters, mp2, s_p_c)
@@ -518,7 +522,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 # родителя
                 # 2) Если это тетраэдр базовый, продолжаем увеличивать предел
                 if rookie or tetrahedron.parent is not None:
-                    limit = random.uniform(tetrahedron_info["limits"][tetrahedron.id], tetrahedron_info["limits"][tetrahedron.parent.parent.id])
+                    limit = tetrahedron_info["limits"][tetrahedron.parent.parent.id] * random.uniform(0.25, 0.45)
                 else:
                     limit = tetrahedron_info["limits"][tetrahedron.id] + random.uniform(1, tetrahedron_info["limits"][tetrahedron.id])
 
