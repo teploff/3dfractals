@@ -52,7 +52,7 @@ class Line:
 
 
 class Face:
-    def __init__(self, p1: Point, p2: Point, p3: Point, max_depth: int, parent=None, mark=False, special=False, limit=None):
+    def __init__(self, p1: Point, p2: Point, p3: Point, max_depth: int, parent=None, mark=False, special=False, limit=None, iters=None):
         """
         Конструктор создания грани (треугольника).
         :param p1: Первая точка грани.
@@ -79,6 +79,7 @@ class Face:
         self.mark = mark
         self.special = special
         self.limit = limit
+        self.iters = iters
 
         self._line1 = Line(p1, p2)
         self._line2 = Line(p2, p3)

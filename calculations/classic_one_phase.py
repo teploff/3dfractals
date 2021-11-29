@@ -1,3 +1,4 @@
+from datetime import datetime
 import math
 from typing import List, Tuple
 
@@ -15,11 +16,11 @@ def real_length(fractal_depth: int, limit_value: float) -> float:
 
 
 def real_square(fractal_depth: int, limit_value: float) -> float:
-    return (6 ** fractal_depth) * (math.sqrt(3)/4.0) * limit_value ** 2
+    return (6 ** fractal_depth) * (math.sqrt(3) / 4.0) * limit_value ** 2
 
 
 def real_value(fractal_depth: int, limit_value: float) -> float:
-    return 2 ** (3*fractal_depth) * ((limit_value ** 3) / 6 * math.sqrt(2))
+    return 2 ** (3 * fractal_depth) * ((limit_value ** 3) / 6 * math.sqrt(2))
 
 
 def make_interpolation(x: List[int], y: List[float]) -> np.ndarray:
@@ -131,7 +132,8 @@ def find_p4_point(a: float, b: float, c: float, n: float, h: float, p7: Point) -
     return Point(x, y, z)
 
 
-def find_tetrahedron_vertex(p1: Point, p2: Point, p3: Point, h: float, parent_surface_k=None, is_special_case=False) -> (Point, Tuple[float, float, float]):
+def find_tetrahedron_vertex(p1: Point, p2: Point, p3: Point, h: float, parent_surface_k=None,
+                            is_special_case=False) -> (Point, Tuple[float, float, float]):
     a, b, c, n = make_coef_surface(p1, p2, p3)
 
     if parent_surface_k is not None:
@@ -189,12 +191,14 @@ def find_step_growth(start_len: float, final_len: float, iter_count: int, p: Poi
     return x, y, z
 
 
-def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Model]]:
+def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics: bool = False) -> List[List[Model]]:
     """
     Вычисление однофазной модели
     :param iter_count: количество итераций роста
     :param limit_value: предальное значение отрезка
     :param depth: глубина фраткальной структуры
+    :param only_for_metrics: если мы хотим собрать лишь метрики, то нам нет необходимости забивать оперативу данными для
+     визуализации. Поэтому, если флаг будет в True, ребра и треугольники для движка Ursina собираться не будут
     :return:
     """
     # Начальные точки тетраэдра, вектор нормали (с коэффициентами A, B и C), и начальный коэфициент
@@ -243,17 +247,6 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     # Если разница между текущей длиной отрезка тетраэдра и его пределом все еще больше погрешности - продолжаем
     # наращивать
     while abs(Line(s_p1, s_p2).length - limit_value) > fault:
-        # Собираем метрики
-        # На первом этапе (росте одного лишь тетраэдра) - объем равен нулю. Так как начальный тетраэдр не считается
-        # фракталом, а считается лишь его грань
-        l = tetrahedrons[0]._face1.total_length
-        s = tetrahedrons[0]._face1.square
-        v = 0
-        line_length.append(l)
-        square.append(s)
-        volume.append(v)
-        ####
-
         # Собираем примитивы для дальнейшей визуализации движком ursina.
         v1 = [[s_p1.x, s_p1.y, s_p1.z], [s_p2.x, s_p2.y, s_p2.z], [s_p3.x, s_p3.y, s_p3.z], [s_p4.x, s_p4.y, s_p4.z]]
         t1 = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
@@ -264,20 +257,6 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
         s_p2 += delta_p2
         s_p3 += delta_p3
         s_p4 += delta_p4
-
-        global_i += 1
-        iterations.append(global_i)
-
-    #####
-    l = tetrahedrons[0]._face1.total_length
-    s = tetrahedrons[0]._face1.square
-    v = 0
-    line_length.append(l)
-    square.append(s)
-    volume.append(v)
-    global_i += 1
-    iterations.append(global_i)
-    ####
 
     # После того, как вырастили родительский тетраэдр. Формируем массив активных треугольников, на которых будем растить
     # последующие тетраэдры. Одному треугольнику даем метку, чтоб отследить тетраэдры, которые учасвтсввуют в
@@ -299,6 +278,8 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     # Задаем текущую глубину и растим фигуру до тех пор пока не достигнем заданную.
     current_depth = 0
     while depth - current_depth != 0:
+        print(f'Приступаем к глубине {current_depth + 1}: {datetime.now()}')
+
         # Обновляем текущий предел роста
         curr_limit /= 2.0
         new_triangles = []
@@ -312,7 +293,8 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
             h = (math.sqrt(6.0) / 3) * calc_distance(mp1, mp2)
             # Находим вершину тетраэдра
             if current_depth == 0 and i == 0:
-                p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h, (triangle.parent.A, triangle.parent.B, triangle.parent.C), True)
+                p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h,
+                                                        (triangle.parent.A, triangle.parent.B, triangle.parent.C), True)
             else:
                 p4, surface_k = find_tetrahedron_vertex(mp1, mp2, mp3, h,
                                                         (triangle.parent.A, triangle.parent.B, triangle.parent.C))
@@ -420,9 +402,15 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                       [tetrahedron.p4.x, tetrahedron.p4.y, tetrahedron.p4.z]
                       ]
                 t1 = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
-                ursina_curr_stage.append(Model(vertices=v1, triangles=t1))
+                # Если хотим собрать метрики для большого значения глубины фрактала - нет необходимости нагружать
+                # оперативку данными, которые для визуализации не нужны, так как смотреть не будем на них
+                if not only_for_metrics:
+                    ursina_curr_stage.append(Model(vertices=v1, triangles=t1))
 
-            ursina_models.append(ursina_curr_stage)
+            # Если хотим собрать метрики для большого значения глубины фрактала - нет необходимости нагружать оперативку
+            # данными, которые для визуализации не нужны, так как смотреть не будем на них
+            if not only_for_metrics:
+                ursina_models.append(ursina_curr_stage)
 
             # Если не сделать такую проверку задублирует метрику, потому что не найдет ни одного тетраедра, которого
             # нужно расти, а он уже вырос:)
@@ -457,21 +445,22 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]
     v_s = [volume[i] / square[i] for i in range(len(iterations))]
 
-    # Производим интерполяцию по найденным метрикам
-    y_length = make_interpolation(iterations, line_length)
-    y_square = make_interpolation(iterations, square)
-    y_volume = make_interpolation(iterations, volume)
+    # # TODO: разкомментировать по необходиомости
+    # # Производим интерполяцию по найденным метрикам
+    # y_length = make_interpolation(iterations, line_length)
+    # y_square = make_interpolation(iterations, square)
+    # y_volume = make_interpolation(iterations, volume)
 
     # Строим графики для найденных и апроксимируемыъ метрик.
     fig1, ax1 = plt.subplots()
     ax1.plot(iterations, line_length, 'o', label=r'$a$', c='black', linewidth=1)
-    ax1.plot(iterations, y_length, '-', label=r'$b$', c='red', linewidth=1)
+    # ax1.plot(iterations, y_length, '-', label=r'$b$', c='red', linewidth=1)
     fig2, ax2 = plt.subplots()
     ax2.plot(iterations, square, 'X', label=r'$a$', c='black', linewidth=1)
-    ax2.plot(iterations, y_square, '-', label=r'$b$', c='red', linewidth=1)
+    # ax2.plot(iterations, y_square, '-', label=r'$b$', c='red', linewidth=1)
     fig3, ax3 = plt.subplots()
     ax3.plot(iterations, volume, '*', label=r'$a$', c='black', linewidth=1)
-    ax3.plot(iterations, y_volume, '-', label=r'$b$', c='red', linewidth=1)
+    # ax3.plot(iterations, y_volume, '-', label=r'$b$', c='red', linewidth=1)
     fig4, ax4 = plt.subplots()
     ax4.plot(iterations, s_l, '*', label=r'$a$', c='black', linewidth=1)
     fig5, ax5 = plt.subplots()
@@ -497,26 +486,12 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
 
     ax5.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax5.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/S, ед.')
-    #
-    # setting label sizes after creation
-    # ax1.xaxis.label.set_size(10)
-    # ax1.yaxis.label.set_size(10)
-    #
-    # ax2.xaxis.label.set_size(10)
-    # ax2.yaxis.label.set_size(10)
-    #
-    # ax3.xaxis.label.set_size(10)
-    # ax3.yaxis.label.set_size(10)
-    #
-    # plt.xticks(fontsize=15)
-    # plt.yticks(fontsize=15)
-    # plt.legend(fontsize=15)
-    #
-    fig1.savefig("length.png")
-    fig2.savefig("square.png")
-    fig3.savefig("value.png")
-    fig4.savefig("s_l.png")
-    fig5.savefig("v_s.png")
+
+    fig1.savefig(f'./metrics/classic/length.png')
+    fig2.savefig(f'./metrics/classic/square.png')
+    fig3.savefig(f'./metrics/classic/value.png')
+    fig4.savefig(f'./metrics/classic/s_l.png')
+    fig5.savefig(f'./metrics/classic/v_s.png')
 
     plt.show()
 

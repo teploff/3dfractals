@@ -1,3 +1,4 @@
+from datetime import datetime
 import math
 import random
 from typing import List, Tuple
@@ -190,12 +191,14 @@ def undergrown_tetrahedron_exists(depths: dict) -> bool:
     return False
 
 
-def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Model]]:
+def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics: bool = False) -> List[List[Model]]:
     """
     Вычисление однофазной модели
     :param iter_count: количество итераций роста
     :param limit_value: предальное значение отрезка
     :param depth: глубина фраткальной структуры
+    :param only_for_metrics: если мы хотим собрать лишь метрики, то нам нет необходимости забивать оперативу данными для
+     визуализации. Поэтому, если флаг будет в True, ребра и треугольники для движка Ursina собираться не будут
     :return:
     """
     # Начальные точки тетраэдра, вектор нормали (с коэффициентами A, B и C), и начальный коэфициент
@@ -245,17 +248,6 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     # Если разница между текущей длиной отрезка тетраэдра и его пределом все еще больше погрешности - продолжаем
     # наращивать
     while abs(Line(s_p1, s_p2).length - limit_value) > fault:
-        # Собираем метрики
-        # На первом этапе (росте одного лишь тетраэдра) - объем равен нулю. Так как начальный тетраэдр не считается
-        # фракталом, а считается лишь его грань
-        l = tetrahedron._face1.total_length
-        s = tetrahedron._face1.square
-        v = 0
-        line_length.append(l)
-        square.append(s)
-        volume.append(v)
-        ####
-
         # Собираем примитивы для дальнейшей визуализации движком ursina.
         v1 = [[s_p1.x, s_p1.y, s_p1.z], [s_p2.x, s_p2.y, s_p2.z], [s_p3.x, s_p3.y, s_p3.z], [s_p4.x, s_p4.y, s_p4.z]]
         t1 = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
@@ -266,20 +258,6 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
         s_p2 += delta_p2
         s_p3 += delta_p3
         s_p4 += delta_p4
-
-        global_i += 1
-        iterations.append(global_i)
-
-    #####
-    l = tetrahedron._face1.total_length
-    s = tetrahedron._face1.square
-    v = 0
-    line_length.append(l)
-    square.append(s)
-    volume.append(v)
-    global_i += 1
-    iterations.append(global_i)
-    ####
 
     # После того, как вырастили родительский тетраэдр. Формируем массив активных треугольников, на которых будем растить
     # последующие тетраэдры. Одному треугольнику даем метку, чтоб отследить тетраэдры, которые учасвтсввуют в
@@ -295,14 +273,11 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     s_p_c = find_centroid(tetrahedron.p1, tetrahedron.p2, tetrahedron.p3, tetrahedron.p4)
     s_len = Line(tetrahedron.p1, tetrahedron.p2).length
 
-    # Задаем рандомное колиечество итерация роста для тетраэдра
-    iters = iter_count + random.randint(1, iter_count)
-
     # Пересчитываем дельты
-    delta_p1 = find_step_growth(s_len, s_len * 2, iters, tetrahedron.p1, s_p_c)
-    delta_p2 = find_step_growth(s_len, s_len * 2, iters, tetrahedron.p2, s_p_c)
-    delta_p3 = find_step_growth(s_len, s_len * 2, iters, tetrahedron.p3, s_p_c)
-    delta_p4 = find_step_growth(s_len, s_len * 2, iters, tetrahedron.p4, s_p_c)
+    delta_p1 = find_step_growth(s_len, s_len * 2, iter_count, tetrahedron.p1, s_p_c)
+    delta_p2 = find_step_growth(s_len, s_len * 2, iter_count, tetrahedron.p2, s_p_c)
+    delta_p3 = find_step_growth(s_len, s_len * 2, iter_count, tetrahedron.p3, s_p_c)
+    delta_p4 = find_step_growth(s_len, s_len * 2, iter_count, tetrahedron.p4, s_p_c)
 
     # Объявляем массив инкрементов для каждого из тетраэдра. В данном случае для базового тетраэдра
     # Объявляем массим пределов, до какого предела растить тетраэдр. Для базового тетраэдра необхоимо обновить шаг
@@ -315,7 +290,7 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
             tetrahedron.id: limit_value * 2
         },
         "iterations_count": {
-            tetrahedron.id: iters
+            tetrahedron.id: iter_count
         },
         "depths": {
             "current": {
@@ -372,8 +347,10 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
                 s_p_c = find_centroid(mp1, mp2, mp3, p4)
 
-                # Задаем рандомное колиечество итерация роста для тетраэдра
-                iters = tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
+                # Задаем колиечество итерация роста для тетраэдра равное количеству итераций родителя + маленькая дельта
+                # Делается это для того, чтобы сохранить приблеженную картину роста к линейной. Похожую на однофазную.
+                # Рандом тут будет искажать графики.
+                iters = tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, 5)
 
                 delta_p1 = find_step_growth(s_len, limit_value, iters, mp1, s_p_c)
                 delta_p2 = find_step_growth(s_len, limit_value, iters, mp2, s_p_c)
@@ -429,7 +406,10 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                       [tetrahedron.p4.x, tetrahedron.p4.y, tetrahedron.p4.z]
                       ]
                 t1 = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
-                ursina_curr_stage.append(Model(vertices=v1, triangles=t1))
+                # Если хотим собрать метрики для большого значения глубины фрактала - нет необходимости нагружать
+                # оперативку данными, которые для визуализации не нужны, так как смотреть не будем на них
+                if not only_for_metrics:
+                    ursina_curr_stage.append(Model(vertices=v1, triangles=t1))
                 continue
 
             if abs(Line(tetrahedron.p1, tetrahedron.p2).length - tetrahedron_info["limits"][tetrahedron.id]) > fault:
@@ -473,7 +453,10 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                   [tetrahedron.p4.x, tetrahedron.p4.y, tetrahedron.p4.z]
                   ]
             t1 = [[0, 1], [1, 2], [2, 0], [0, 3], [3, 1], [3, 2]]
-            ursina_curr_stage.append(Model(vertices=v1, triangles=t1))
+            # Если хотим собрать метрики для большого значения глубины фрактала - нет необходимости нагружать
+            # оперативку данными, которые для визуализации не нужны, так как смотреть не будем на них
+            if not only_for_metrics:
+                ursina_curr_stage.append(Model(vertices=v1, triangles=t1))
 
             # Необходимо проверить вырос ли текущий тетраэдр. Если да, инкрементировать ему текущую глубину на 1,
             # увеличить предел роста на x2 и обновить инкрименты
@@ -498,13 +481,8 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 s_p_c = find_centroid(tetrahedron.p1, tetrahedron.p2, tetrahedron.p3, tetrahedron.p4)
                 s_len = Line(tetrahedron.p1, tetrahedron.p2).length
 
-                # Задаем рандомное колиечество итераций роста для тетраэдра, исходя из того, базовый ли это тетраэдр
-                # или нет. Нужно это для того, чтобы дочерние элементы не достраивались быстрее родительских, чтоб не
-                # было гонки с визуализацией
-                if tetrahedron.parent is not None:
-                    iters = tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, tetrahedron_info["iterations_count"][triangle.parent.id])
-                else:
-                    iters = iter_count
+                # Так как тетраэдр уже растет повторно, инкрементировать итерации роста не нужно!
+                iters = tetrahedron_info["iterations_count"][tetrahedron.id]
 
                 # Пересчитываем дельты
                 delta_p1 = find_step_growth(s_len, s_len * 2, iters, tetrahedron.p1, s_p_c)
@@ -522,12 +500,16 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                 # для татраэдра. Старые учитывать нельзя!
                 if rookie:
                     max_depth = tetrahedron_info["depths"]["maximum"][tetrahedron.id]
-                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, max_depth, tetrahedron, triangle.mark, triangle.special))
-                    new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, triangle.mark, triangle.special))
-                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, triangle.mark, triangle.special))
+                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, max_depth, tetrahedron, tetrahedron.parent.mark, triangle.special))
+                    new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, tetrahedron.parent.mark, triangle.special))
+                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, tetrahedron.parent.mark, triangle.special))
+
         # Добавляем найденные грани в список активных отрезков
         triangles += new_triangles
-        ursina_models.append(ursina_curr_stage)
+        # Если хотим собрать метрики для большого значения глубины фрактала - нет необходимости нагружать
+        # оперативку данными, которые для визуализации не нужны, так как смотреть не будем на них
+        if not only_for_metrics:
+            ursina_models.append(ursina_curr_stage)
 
         # Пересчитываем серединные точки
         for point, points in recalc_middle_points.items():
@@ -550,20 +532,25 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
                     v += t.volume
                     l += t.total_length
                     s += t.total_square
-        # Сохраняем метрики. Если метрика текущая ничем не отличается от предыдущей
-        # (а это означает, что все маркированные фишгуры мы просчитали), то учитывать ее не нужно.
-        if global_i == 0 or volume[-1] != v:
-            line_length.append(l)
-            square.append(s)
-            volume.append(v)
-            global_i += 1
-            iterations.append(global_i)
+        # TODO: подумать нужно ли тут делать такую проверку при сохранении метрик. Если метрика текущая ничем не
+        #   отличается от предыдущей (а это означает, что все маркированные фишгуры мы просчитали), то учитывать ее
+        #   не нужно.
+        # if volume[-1] != v:
+        line_length.append(l)
+        square.append(s)
+        volume.append(v)
+        global_i += 1
+        iterations.append(global_i)
         ####
+
+        print(f'current: len = {len(tetrahedron_info["depths"]["current"])}. Info = {tetrahedron_info["depths"]["current"]}')
+        print(f'maximum: len = {len(tetrahedron_info["depths"]["maximum"])}. Info = {tetrahedron_info["depths"]["maximum"]}')
 
     # Вычисляем отношения S/L и V/S для обнаружения закономерностей.
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]
     v_s = [volume[i] / square[i] for i in range(len(iterations))]
 
+    # # TODO: разкомментировать по необходиомости
     # # Производим интерполяцию по найденным метрикам
     # y_length = make_interpolation(iterations, line_length)
     # y_square = make_interpolation(iterations, square)
@@ -619,11 +606,11 @@ def calculate(iter_count: int, limit_value: float, depth: int) -> List[List[Mode
     # plt.yticks(fontsize=15)
     # plt.legend(fontsize=15)
     #
-    fig1.savefig("length.png")
-    fig2.savefig("square.png")
-    fig3.savefig("value.png")
-    fig4.savefig("s_l.png")
-    fig5.savefig("v_s.png")
+    fig1.savefig(f'./metrics/several_phases/length.png')
+    fig2.savefig(f'./metrics/several_phases/square.png')
+    fig3.savefig(f'./metrics/several_phases/value.png')
+    fig4.savefig(f'./metrics/several_phases/s_l.png')
+    fig5.savefig(f'./metrics/several_phases/v_s.png')
 
     plt.show()
 
