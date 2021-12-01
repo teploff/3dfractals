@@ -350,7 +350,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
                 # Задаем колиечество итерация роста для тетраэдра равное количеству итераций родителя + маленькая дельта
                 # Делается это для того, чтобы сохранить приблеженную картину роста к линейной. Похожую на однофазную.
                 # Рандом тут будет искажать графики.
-                iters = tetrahedron_info["iterations_count"][triangle.parent.id] + random.randint(1, 5)
+                iters = tetrahedron_info["iterations_count"][triangle.parent.id] + 1
 
                 delta_p1 = find_step_growth(s_len, limit_value, iters, mp1, s_p_c)
                 delta_p2 = find_step_growth(s_len, limit_value, iters, mp2, s_p_c)
@@ -549,6 +549,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     # Вычисляем отношения S/L и V/S для обнаружения закономерностей.
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]
     v_s = [volume[i] / square[i] for i in range(len(iterations))]
+    v_l = [volume[i] / line_length[i] for i in range(len(iterations))]
 
     # # TODO: разкомментировать по необходиомости
     # # Производим интерполяцию по найденным метрикам
@@ -570,12 +571,15 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax4.plot(iterations, s_l, '*', label=r'$a$', c='black', linewidth=1)
     fig5, ax5 = plt.subplots()
     ax5.plot(iterations, v_s, '*', label=r'$a$', c='black', linewidth=1)
+    fig6, ax6 = plt.subplots()
+    ax6.plot(iterations, v_l, '*', label=r'$a$', c='black', linewidth=1)
 
     ax1.grid(True)
     ax2.grid(True)
     ax3.grid(True)
     ax4.grid(True)
     ax5.grid(True)
+    ax6.grid(True)
 
     ax1.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax1.set(xlabel='Число циклов роста, ед.', ylabel='Длина фрактальной линии, ед.')
@@ -591,6 +595,9 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
 
     ax5.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax5.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/S, ед.')
+
+    ax6.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax6.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/L, ед.')
     #
     # setting label sizes after creation
     # ax1.xaxis.label.set_size(10)
@@ -611,6 +618,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     fig3.savefig(f'./metrics/several_phases/value.png')
     fig4.savefig(f'./metrics/several_phases/s_l.png')
     fig5.savefig(f'./metrics/several_phases/v_s.png')
+    fig6.savefig(f'./metrics/several_phases/v_l.png')
 
     plt.show()
 
