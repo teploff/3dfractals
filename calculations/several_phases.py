@@ -239,6 +239,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     line_length = []
     square = []
     volume = []
+    volume_base = []
 
     # Итерация роста полной фигуры. Необходима в будущем для визуализации величин длины, площади и объема фрактала
     global_i = 0
@@ -525,6 +526,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
         for i, t in enumerate(tetrahedrons):
             # Если это базовый тетраэдр: то объем не учитываем, площадь равна площади одной грани, как и длина
             if i == 0:
+                volume_base.append(t.volume)
                 l = t._face1.total_length
                 s = t._face1.square
             else:
@@ -550,6 +552,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]
     v_s = [volume[i] / square[i] for i in range(len(iterations))]
     v_l = [volume[i] / line_length[i] for i in range(len(iterations))]
+    v_v_base = [4 * volume[i] / volume_base[i] for i in range(len(iterations))]
 
     # # TODO: разкомментировать по необходиомости
     # # Производим интерполяцию по найденным метрикам
@@ -573,6 +576,8 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax5.plot(iterations, v_s, '*', label=r'$a$', c='black', linewidth=1)
     fig6, ax6 = plt.subplots()
     ax6.plot(iterations, v_l, '*', label=r'$a$', c='black', linewidth=1)
+    fig7, ax7 = plt.subplots()
+    ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
 
     ax1.grid(True)
     ax2.grid(True)
@@ -580,6 +585,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax4.grid(True)
     ax5.grid(True)
     ax6.grid(True)
+    ax7.grid(True)
 
     ax1.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax1.set(xlabel='Число циклов роста, ед.', ylabel='Длина фрактальной линии, ед.')
@@ -598,6 +604,9 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
 
     ax6.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax6.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/L, ед.')
+
+    ax7.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax7.set(xlabel='Число циклов роста, ед.', ylabel='Отношение 4*V1/V0, ед.')
     #
     # setting label sizes after creation
     # ax1.xaxis.label.set_size(10)
@@ -619,6 +628,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     fig4.savefig(f'./metrics/several_phases/s_l.png')
     fig5.savefig(f'./metrics/several_phases/v_s.png')
     fig6.savefig(f'./metrics/several_phases/v_l.png')
+    fig7.savefig(f'./metrics/several_phases/4v1_v0.png')
 
     plt.show()
 
