@@ -444,6 +444,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     # Вычисляем отношения S/L и V/S для обнаружения закономерностей.
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]
     v_s = [volume[i] / square[i] for i in range(len(iterations))]
+    v_l = [volume[i] /  line_length[i] for i in range(len(iterations))]
 
     # # TODO: разкомментировать по необходиомости
     # # Производим интерполяцию по найденным метрикам
@@ -465,12 +466,15 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax4.plot(iterations, s_l, '*', label=r'$a$', c='black', linewidth=1)
     fig5, ax5 = plt.subplots()
     ax5.plot(iterations, v_s, '*', label=r'$a$', c='black', linewidth=1)
+    fig6, ax6 = plt.subplots()
+    ax6.plot(iterations, v_l, '*', label=r'$a$', c='black', linewidth=1)
 
     ax1.grid(True)
     ax2.grid(True)
     ax3.grid(True)
     ax4.grid(True)
     ax5.grid(True)
+    ax6.grid(True)
 
     ax1.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax1.set(xlabel='Число циклов роста, ед.', ylabel='Длина фрактальной линии, ед.')
@@ -487,11 +491,15 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax5.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax5.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/S, ед.')
 
+    ax6.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax6.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/L, ед.')
+
     fig1.savefig(f'./metrics/classic/length.png')
     fig2.savefig(f'./metrics/classic/square.png')
     fig3.savefig(f'./metrics/classic/value.png')
     fig4.savefig(f'./metrics/classic/s_l.png')
     fig5.savefig(f'./metrics/classic/v_s.png')
+    fig6.savefig(f'./metrics/classic/v_l.png')
 
     plt.show()
 
