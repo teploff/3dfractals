@@ -200,6 +200,8 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
      визуализации. Поэтому, если флаг будет в True, ребра и треугольники для движка Ursina собираться не будут
     :return:
     """
+    print(f'Начало работы вычисления однофазного метода: {datetime.now()}')
+
     # Начальные точки тетраэдра, вектор нормали (с коэффициентами A, B и C), и начальный коэфициент
     # для уменьшения фигуры
     s_p1 = Point(0.0, 0.0, 0.0)
@@ -456,6 +458,9 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
         # Увеличиваем значение глубины, так как полный цикл роста прошли.
         current_depth += 1
 
+    print(f'Окончание работы вычисления однофазного метода: {datetime.now()}')
+    print()
+
     # Вычисляем отношения S/L и V/S для обнаружения закономерностей.
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]
     v_s = [volume[i] / square[i] for i in range(len(iterations))]
@@ -525,5 +530,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     fig7.savefig(f'./metrics/one_phase/4v1_v0.png')
 
     plt.show()
+
+    print(f'Количество тетраэдров = {len(tetrahedrons)} в однофазном методе при глубине = {depth}')
 
     return ursina_models

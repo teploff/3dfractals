@@ -1,6 +1,5 @@
 from datetime import datetime
 import math
-import random
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
@@ -201,6 +200,8 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
      визуализации. Поэтому, если флаг будет в True, ребра и треугольники для движка Ursina собираться не будут
     :return:
     """
+    print(f'Начало работы вычисления многофазного метода: {datetime.now()}')
+
     # Начальные точки тетраэдра, вектор нормали (с коэффициентами A, B и C), и начальный коэфициент
     # для уменьшения фигуры
     s_p1 = Point(0.0, 0.0, 0.0)
@@ -545,8 +546,8 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
         iterations.append(global_i)
         ####
 
-        print(f'current: len = {len(tetrahedron_info["depths"]["current"])}. Info = {tetrahedron_info["depths"]["current"]}')
-        print(f'maximum: len = {len(tetrahedron_info["depths"]["maximum"])}. Info = {tetrahedron_info["depths"]["maximum"]}')
+    print(f'Окончание работы вычисления многофазного метода: {datetime.now()}')
+    print()
 
     # Вычисляем отношения S/L и V/S для обнаружения закономерностей.
     s_l = [square[i] / line_length[i] for i in range(len(iterations))]
@@ -631,5 +632,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     fig7.savefig(f'./metrics/several_phases/4v1_v0.png')
 
     plt.show()
+
+    print(f'Количество тетраэдров = {len(tetrahedrons)} в многофазном методе при глубине = {depth}')
 
     return ursina_models
