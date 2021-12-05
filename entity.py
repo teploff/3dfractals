@@ -52,7 +52,7 @@ class Line:
 
 
 class Face:
-    def __init__(self, p1: Point, p2: Point, p3: Point, max_depth: int, parent=None, mark=False, special=False, limit=None, iters=None):
+    def __init__(self, p1: Point, p2: Point, p3: Point, max_depth: int, parent=None, mark=False, special=False, limit=None, iters=None, cousin=None):
         """
         Конструктор создания грани (треугольника).
         :param p1: Первая точка грани.
@@ -67,7 +67,11 @@ class Face:
         родительского тетраэдра (трегольника). TODO: Наверняка какой-либо пораждающий патерн или враппер над
         TODO: существующим классом позволил бы избежать данного параметра тут.
         :param limit: Предельное значение, до которого должна дорасти грань. TODO: временное решение, возможно это
-        TODO: необходимо как-то обыграть в будущем
+        TODO: необходимо как-то обыграть в будущем.
+        :param cousin: Объект-кузин. В данном мконтексте этот тетраэдр, образованный в то время, когда образовывался
+        текущий треугольник (разбиение трегульника на 4 треугольника), из центрального треугольника. Иными словами,
+        данный треугольник является побочным, т.е. тем, который не средний при разбиении. TODO: временное решение,
+        TODO: возможно это  необходимо как-то обыграть в будущем.
         """
         self.p1 = p1
         self.p2 = p2
@@ -75,6 +79,7 @@ class Face:
         self.max_depth = max_depth
 
         self.parent = parent
+        self.cousin = cousin
 
         self.mark = mark
         self.special = special
