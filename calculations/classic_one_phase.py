@@ -1,5 +1,6 @@
 from datetime import datetime
 import math
+import pickle
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
@@ -463,13 +464,10 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     # Строим графики для найденных и апроксимируемыъ метрик.
     fig1, ax1 = plt.subplots()
     ax1.plot(iterations, line_length, 'o', label=r'$a$', c='black', linewidth=1)
-    # ax1.plot(iterations, y_length, '-', label=r'$b$', c='red', linewidth=1)
     fig2, ax2 = plt.subplots()
     ax2.plot(iterations, square, 'X', label=r'$a$', c='black', linewidth=1)
-    # ax2.plot(iterations, y_square, '-', label=r'$b$', c='red', linewidth=1)
     fig3, ax3 = plt.subplots()
     ax3.plot(iterations, volume, '*', label=r'$a$', c='black', linewidth=1)
-    # ax3.plot(iterations, y_volume, '-', label=r'$b$', c='red', linewidth=1)
     fig4, ax4 = plt.subplots()
     ax4.plot(iterations, s_l, '*', label=r'$a$', c='black', linewidth=1)
     fig5, ax5 = plt.subplots()
@@ -478,6 +476,33 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax6.plot(iterations, v_l, '*', label=r'$a$', c='black', linewidth=1)
     fig7, ax7 = plt.subplots()
     ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
+
+    with open(f'./metrics/classic/iterations_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(iterations, f)
+
+    with open(f'./metrics/classic/length_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(line_length, f)
+
+    with open(f'./metrics/classic/square_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(square, f)
+
+    with open(f'./metrics/classic/volume_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(volume, f)
+
+    with open(f'./metrics/classic/s_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(s_l, f)
+
+    with open(f'./metrics/classic/v_s_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(v_s, f)
+
+    with open(f'./metrics/classic/v_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(v_l, f)
+
+    with open(f'./metrics/classic/v_v_base_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(v_v_base, f)
+
+    # with open(f'./metrics/classic/length_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+    #     itemlist = pickle.load(fp)
 
     ax1.grid(True)
     ax2.grid(True)

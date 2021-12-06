@@ -1,5 +1,6 @@
 from datetime import datetime
 import math
+import pickle
 import random
 from typing import List, Tuple
 
@@ -191,12 +192,13 @@ def undergrown_tetrahedron_exists(depths: dict) -> bool:
     return False
 
 
-def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics: bool = False) -> List[List[Model]]:
+def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: float, only_for_metrics: bool = False) -> List[List[Model]]:
     """
     Вычисление однофазной модели
     :param iter_count: количество итераций роста
     :param limit_value: предальное значение отрезка
     :param depth: глубина фраткальной структуры
+    :param left_limit_rnd: левое значение рандома. Необходимо для
     :param only_for_metrics: если мы хотим собрать лишь метрики, то нам нет необходимости забивать оперативу данными для
      визуализации. Поэтому, если флаг будет в True, ребра и треугольники для движка Ursina собираться не будут
     :return:
@@ -353,13 +355,13 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
                 #  середине в момент разбиения треугольников). Для того, чтобы избежать: некорректности опреедления
                 #  пределеа роста (наслоения тетраэдров друг на друга)
                 if triangle.cousin is None:
-                    limit = tetrahedron_info["limits"][triangle.parent.id] / 2.0 * random.uniform(0.9, 1.0)
+                    limit = tetrahedron_info["limits"][triangle.parent.id] / 2.0 * random.uniform(left_limit_rnd, 1.0)
                 else:
                     cousin_limit = tetrahedron_info["limits"][triangle.cousin.id]
                     if cousin_limit > limit_value:
-                        limit = cousin_limit / 2.0 * random.uniform(0.9, 1.0)
+                        limit = cousin_limit / 2.0 * random.uniform(left_limit_rnd, 1.0)
                     else:
-                        limit = cousin_limit * random.uniform(0.9, 1.0)
+                        limit = cousin_limit * random.uniform(left_limit_rnd, 1.0)
                 delta_p1 = find_step_growth(s_len, limit, iter_count, mp1, s_p_c)
                 delta_p2 = find_step_growth(s_len, limit, iter_count, mp2, s_p_c)
                 delta_p3 = find_step_growth(s_len, limit, iter_count, mp3, s_p_c)
@@ -585,6 +587,30 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax6.plot(iterations, v_l, '*', label=r'$a$', c='black', linewidth=1)
     fig7, ax7 = plt.subplots()
     ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
+
+    with open(f'./metrics/stochasticity/iterations_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+        pickle.dump(iterations, f)
+
+    with open(f'./metrics/stochasticity/length_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+        pickle.dump(line_length, f)
+
+    with open(f'./metrics/stochasticity/square_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+        pickle.dump(square, f)
+
+    with open(f'./metrics/stochasticity/volume_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+        pickle.dump(volume, f)
+
+    with open(f'./metrics/stochasticity/s_l_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+        pickle.dump(s_l, f)
+
+    with open(f'./metrics/stochasticity/v_s_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+        pickle.dump(v_s, f)
+
+    with open(f'./metrics/stochasticity/v_l_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+        pickle.dump(v_l, f)
+
+    with open(f'./metrics/stochasticity/v_v_base_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+        pickle.dump(v_v_base, f)
 
     ax1.grid(True)
     ax2.grid(True)

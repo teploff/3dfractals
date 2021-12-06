@@ -1,5 +1,6 @@
 from datetime import datetime
 import math
+import pickle
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
@@ -491,6 +492,30 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax6.plot(iterations, v_l, '*', label=r'$a$', c='black', linewidth=1)
     fig7, ax7 = plt.subplots()
     ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
+
+    with open(f'./metrics/one_phase/iterations_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(iterations, f)
+
+    with open(f'./metrics/one_phase/length_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(line_length, f)
+
+    with open(f'./metrics/one_phase/square_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(square, f)
+
+    with open(f'./metrics/one_phase/volume_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(volume, f)
+
+    with open(f'./metrics/one_phase/s_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(s_l, f)
+
+    with open(f'./metrics/one_phase/v_s_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(v_s, f)
+
+    with open(f'./metrics/one_phase/v_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(v_l, f)
+
+    with open(f'./metrics/one_phase/v_v_base_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+        pickle.dump(v_v_base, f)
 
     ax1.grid(True)
     ax2.grid(True)

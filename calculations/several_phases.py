@@ -1,5 +1,6 @@
 from datetime import datetime
 import math
+import pickle
 from typing import List, Tuple
 
 import matplotlib.pyplot as plt
@@ -190,12 +191,13 @@ def undergrown_tetrahedron_exists(depths: dict) -> bool:
     return False
 
 
-def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics: bool = False) -> List[List[Model]]:
+def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int, only_for_metrics: bool = False) -> List[List[Model]]:
     """
     Вычисление однофазной модели
     :param iter_count: количество итераций роста
     :param limit_value: предальное значение отрезка
     :param depth: глубина фраткальной структуры
+    :param delta_iters: количество итераций, прибавляемое при создании тетраэдра. Необходимо для получения эффекта стохастичности.
     :param only_for_metrics: если мы хотим собрать лишь метрики, то нам нет необходимости забивать оперативу данными для
      визуализации. Поэтому, если флаг будет в True, ребра и треугольники для движка Ursina собираться не будут
     :return:
@@ -352,7 +354,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
                 # Задаем колиечество итерация роста для тетраэдра равное количеству итераций родителя + маленькая дельта
                 # Делается это для того, чтобы сохранить приблеженную картину роста к линейной. Похожую на однофазную.
                 # Рандом тут будет искажать графики.
-                iters = tetrahedron_info["iterations_count"][triangle.parent.id] + 1
+                iters = tetrahedron_info["iterations_count"][triangle.parent.id] + delta_iters
 
                 delta_p1 = find_step_growth(s_len, limit_value, iters, mp1, s_p_c)
                 delta_p2 = find_step_growth(s_len, limit_value, iters, mp2, s_p_c)
@@ -579,6 +581,30 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax6.plot(iterations, v_l, '*', label=r'$a$', c='black', linewidth=1)
     fig7, ax7 = plt.subplots()
     ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
+
+    with open(f'./metrics/several_phases/iterations_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+        pickle.dump(iterations, f)
+
+    with open(f'./metrics/several_phases/length_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+        pickle.dump(line_length, f)
+
+    with open(f'./metrics/several_phases/square_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+        pickle.dump(square, f)
+
+    with open(f'./metrics/several_phases/volume_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+        pickle.dump(volume, f)
+
+    with open(f'./metrics/several_phases/s_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+        pickle.dump(s_l, f)
+
+    with open(f'./metrics/several_phases/v_s_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+        pickle.dump(v_s, f)
+
+    with open(f'./metrics/several_phases/v_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+        pickle.dump(v_l, f)
+
+    with open(f'./metrics/several_phases/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+        pickle.dump(v_v_base, f)
 
     ax1.grid(True)
     ax2.grid(True)
