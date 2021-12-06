@@ -198,11 +198,4 @@ class Tetrahedron:
         Calculate Tetrahedron's volume.
         :return: Tetrahedron's volume.
         """
-        return 1.0 / 6.0 * abs(
-            (self.p2.x - self.p1.x) * (self.p3.y - self.p1.y) * (self.p4.z - self.p1.z) +
-            (self.p4.x - self.p1.x) * (self.p2.y - self.p1.y) * (self.p3.z - self.p1.z) +
-            (self.p3.x - self.p1.x) * (self.p4.x - self.p1.y) * (self.p2.z - self.p1.z) -
-            (self.p4.x - self.p1.x) * (self.p3.y - self.p1.y) * (self.p2.z - self.p1.z) -
-            (self.p2.x - self.p1.x) * (self.p4.y - self.p1.y) * (self.p3.z - self.p1.z) +
-            (self.p3.x - self.p1.x) * (self.p2.y - self.p1.y) * (self.p4.z - self.p1.z)
-        )
+        return (self._line1.length ** 3) / (6 * math.sqrt(2))
