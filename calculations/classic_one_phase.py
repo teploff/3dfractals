@@ -477,28 +477,28 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     fig7, ax7 = plt.subplots()
     ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
 
-    with open(f'./metrics/classic/iterations_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/classic/iterations_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(iterations, f)
 
-    with open(f'./metrics/classic/length_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/classic/length_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(line_length, f)
 
-    with open(f'./metrics/classic/square_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/classic/square_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(square, f)
 
-    with open(f'./metrics/classic/volume_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/classic/volume_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(volume, f)
 
-    with open(f'./metrics/classic/s_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/classic/s_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(s_l, f)
 
-    with open(f'./metrics/classic/v_s_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/classic/v_s_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(v_s, f)
 
-    with open(f'./metrics/classic/v_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/classic/v_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(v_l, f)
 
-    with open(f'./metrics/classic/v_v_base_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/classic/v_v_base_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(v_v_base, f)
 
     # with open(f'./metrics/classic/length_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
@@ -533,13 +533,13 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax7.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax7.set(xlabel='Число циклов роста, ед.', ylabel='Отношение 4*V1/V0, ед.')
 
-    fig1.savefig(f'./metrics/classic/length.png')
-    fig2.savefig(f'./metrics/classic/square.png')
-    fig3.savefig(f'./metrics/classic/value.png')
-    fig4.savefig(f'./metrics/classic/s_l.png')
-    fig5.savefig(f'./metrics/classic/v_s.png')
-    fig6.savefig(f'./metrics/classic/v_l.png')
-    fig7.savefig(f'./metrics/classic/4v1_v0.png')
+    fig1.savefig(f'./metrics/graphics/classic/length.png')
+    fig2.savefig(f'./metrics/graphics/classic/square.png')
+    fig3.savefig(f'./metrics/graphics/classic/value.png')
+    fig4.savefig(f'./metrics/graphics/classic/s_l.png')
+    fig5.savefig(f'./metrics/graphics/classic/v_s.png')
+    fig6.savefig(f'./metrics/graphics/classic/v_l.png')
+    fig7.savefig(f'./metrics/graphics/classic/4v1_v0.png')
 
     plt.show()
 

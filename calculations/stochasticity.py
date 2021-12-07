@@ -588,28 +588,28 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
     fig7, ax7 = plt.subplots()
     ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
 
-    with open(f'./metrics/stochasticity/iterations_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/stochasticity/iterations_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(iterations, f)
 
-    with open(f'./metrics/stochasticity/length_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/stochasticity/length_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(line_length, f)
 
-    with open(f'./metrics/stochasticity/square_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/stochasticity/square_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(square, f)
 
-    with open(f'./metrics/stochasticity/volume_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/stochasticity/volume_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(volume, f)
 
-    with open(f'./metrics/stochasticity/s_l_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/stochasticity/s_l_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(s_l, f)
 
-    with open(f'./metrics/stochasticity/v_s_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/stochasticity/v_s_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(v_s, f)
 
-    with open(f'./metrics/stochasticity/v_l_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/stochasticity/v_l_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(v_l, f)
 
-    with open(f'./metrics/stochasticity/v_v_base_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/stochasticity/v_v_base_iter_count_{iter_count}_depth_{depth}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(v_v_base, f)
 
     ax1.grid(True)
@@ -655,13 +655,13 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
     # plt.yticks(fontsize=15)
     # plt.legend(fontsize=15)
     #
-    fig1.savefig(f'./metrics/stochasticity/length.png')
-    fig2.savefig(f'./metrics/stochasticity/square.png')
-    fig3.savefig(f'./metrics/stochasticity/value.png')
-    fig4.savefig(f'./metrics/stochasticity/s_l.png')
-    fig5.savefig(f'./metrics/stochasticity/v_s.png')
-    fig6.savefig(f'./metrics/stochasticity/v_l.png')
-    fig7.savefig(f'./metrics/stochasticity/4v1_v0.png')
+    fig1.savefig(f'./metrics/graphics/stochasticity/length.png')
+    fig2.savefig(f'./metrics/graphics/stochasticity/square.png')
+    fig3.savefig(f'./metrics/graphics/stochasticity/value.png')
+    fig4.savefig(f'./metrics/graphics/stochasticity/s_l.png')
+    fig5.savefig(f'./metrics/graphics/stochasticity/v_s.png')
+    fig6.savefig(f'./metrics/graphics/stochasticity/v_l.png')
+    fig7.savefig(f'./metrics/graphics/stochasticity/4v1_v0.png')
 
     plt.show()
 

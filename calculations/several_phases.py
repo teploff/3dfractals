@@ -582,28 +582,28 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
     fig7, ax7 = plt.subplots()
     ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
 
-    with open(f'./metrics/several_phases/iterations_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/several_phases/iterations_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(iterations, f)
 
-    with open(f'./metrics/several_phases/length_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/several_phases/length_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(line_length, f)
 
-    with open(f'./metrics/several_phases/square_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/several_phases/square_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(square, f)
 
-    with open(f'./metrics/several_phases/volume_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/several_phases/volume_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(volume, f)
 
-    with open(f'./metrics/several_phases/s_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/several_phases/s_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(s_l, f)
 
-    with open(f'./metrics/several_phases/v_s_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/several_phases/v_s_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(v_s, f)
 
-    with open(f'./metrics/several_phases/v_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/several_phases/v_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(v_l, f)
 
-    with open(f'./metrics/several_phases/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/several_phases/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(v_v_base, f)
 
     ax1.grid(True)
@@ -649,13 +649,13 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
     # plt.yticks(fontsize=15)
     # plt.legend(fontsize=15)
     #
-    fig1.savefig(f'./metrics/several_phases/length.png')
-    fig2.savefig(f'./metrics/several_phases/square.png')
-    fig3.savefig(f'./metrics/several_phases/value.png')
-    fig4.savefig(f'./metrics/several_phases/s_l.png')
-    fig5.savefig(f'./metrics/several_phases/v_s.png')
-    fig6.savefig(f'./metrics/several_phases/v_l.png')
-    fig7.savefig(f'./metrics/several_phases/4v1_v0.png')
+    fig1.savefig(f'./metrics/graphics/several_phases/length.png')
+    fig2.savefig(f'./metrics/graphics/several_phases/square.png')
+    fig3.savefig(f'./metrics/graphics/several_phases/value.png')
+    fig4.savefig(f'./metrics/graphics/several_phases/s_l.png')
+    fig5.savefig(f'./metrics/graphics/several_phases/v_s.png')
+    fig6.savefig(f'./metrics/graphics/several_phases/v_l.png')
+    fig7.savefig(f'./metrics/graphics/several_phases/4v1_v0.png')
 
     plt.show()
 

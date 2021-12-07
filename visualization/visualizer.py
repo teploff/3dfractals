@@ -32,8 +32,8 @@ class Game(Ursina):
 
         self.fractal = Builder(classic_one_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=True))
         # self.fractal = Builder(one_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=True))
-        # self.fractal = Builder(several_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 1, only_for_metrics=True))
-        # self.fractal = Builder(stochastic_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.6, only_for_metrics=True))
+        self.fractal = Builder(several_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 1, only_for_metrics=True))
+        # self.fractal = Builder(stochastic_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.9, only_for_metrics=True))
         self.state = 0
 
         EditorCamera()

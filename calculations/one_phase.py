@@ -493,28 +493,28 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     fig7, ax7 = plt.subplots()
     ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
 
-    with open(f'./metrics/one_phase/iterations_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/one_phase/iterations_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(iterations, f)
 
-    with open(f'./metrics/one_phase/length_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/one_phase/length_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(line_length, f)
 
-    with open(f'./metrics/one_phase/square_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/one_phase/square_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(square, f)
 
-    with open(f'./metrics/one_phase/volume_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/one_phase/volume_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(volume, f)
 
-    with open(f'./metrics/one_phase/s_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/one_phase/s_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(s_l, f)
 
-    with open(f'./metrics/one_phase/v_s_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/one_phase/v_s_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(v_s, f)
 
-    with open(f'./metrics/one_phase/v_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/one_phase/v_l_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(v_l, f)
 
-    with open(f'./metrics/one_phase/v_v_base_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/one_phase/v_v_base_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(v_v_base, f)
 
     ax1.grid(True)
@@ -546,13 +546,13 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     ax7.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
     ax7.set(xlabel='Число циклов роста, ед.', ylabel='Отношение 4*V1/V0, ед.')
 
-    fig1.savefig(f'./metrics/one_phase/length.png')
-    fig2.savefig(f'./metrics/one_phase/square.png')
-    fig3.savefig(f'./metrics/one_phase/value.png')
-    fig4.savefig(f'./metrics/one_phase/s_l.png')
-    fig5.savefig(f'./metrics/one_phase/v_s.png')
-    fig6.savefig(f'./metrics/one_phase/v_l.png')
-    fig7.savefig(f'./metrics/one_phase/4v1_v0.png')
+    fig1.savefig(f'./metrics/graphics/one_phase/length.png')
+    fig2.savefig(f'./metrics/graphics/one_phase/square.png')
+    fig3.savefig(f'./metrics/graphics/one_phase/value.png')
+    fig4.savefig(f'./metrics/graphics/one_phase/s_l.png')
+    fig5.savefig(f'./metrics/graphics/one_phase/v_s.png')
+    fig6.savefig(f'./metrics/graphics/one_phase/v_l.png')
+    fig7.savefig(f'./metrics/graphics/one_phase/4v1_v0.png')
 
     plt.show()
 
