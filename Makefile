@@ -1,4 +1,4 @@
-.PHONY: zip-arch
+.PHONY: zip-graphics
 
-zip-arch:
-	zip -r metrics.zip ./metrics
+zip-graphics:
+	zip -r metrics.zip ./metrics/graphics
