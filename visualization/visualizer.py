@@ -4,6 +4,7 @@ from calculations.classic_one_phase import calculate as classic_one_phase_calc
 from calculations.one_phase import calculate as one_phase_calc
 from calculations.several_phases import calculate as several_phase_calc
 from calculations.stochasticity import calculate as stochastic_calc
+from calculations.functional_one_phase import calculate as functional_calc
 from visualization.entity import Builder
 
 MAX_DEPTH = 7
@@ -30,10 +31,11 @@ class Game(Ursina):
         Light(type='ambient', color=(0.5, 0.5, 0.5, 1))
         Light(type='directional', color=(0.5, 0.5, 0.5, 1), direction=(1, 1, 1))
 
-        self.fractal = Builder(classic_one_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=True))
+        # self.fractal = Builder(classic_one_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=True))
         # self.fractal = Builder(one_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=True))
-        self.fractal = Builder(several_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 1, only_for_metrics=True))
+        # self.fractal = Builder(several_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 1, only_for_metrics=True))
         # self.fractal = Builder(stochastic_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.9, only_for_metrics=True))
+        self.fractal = Builder(functional_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=False))
         self.state = 0
 
         EditorCamera()
