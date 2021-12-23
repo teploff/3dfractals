@@ -3,7 +3,6 @@ import math
 import pickle
 from typing import List, Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 
@@ -237,12 +236,14 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
     tetrahedron = Tetrahedron(s_p1, s_p2, s_p3, s_p4, surface_k, None)
     tetrahedrons = [tetrahedron]
 
-    # Массивы для подсчета метрик: длины, площади и объема. Так же массив итераций роста.
+    # Массивы для подсчета метрик: длины, площади, объема, объема лишь базового тетраэдра и размаха всего фрактала,
+    # представляющего собой длину ребра базового тетраэдра. Так же массив итераций роста.
     iterations = []
     line_length = []
     square = []
     volume = []
     volume_base = []
+    fractal_span = []
 
     # Итерация роста полной фигуры. Необходима в будущем для визуализации величин длины, площади и объема фрактала
     global_i = 0
@@ -530,6 +531,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
             # Если это базовый тетраэдр: то объем не учитываем, площадь равна площади одной грани, как и длина
             if i == 0:
                 volume_base.append(t.volume)
+                fractal_span.append(t._line1.length)
                 l = t._face1.total_length
                 s = t._face1.square
             else:
@@ -557,31 +559,6 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
     v_l = [volume[i] / line_length[i] for i in range(len(iterations))]
     v_v_base = [4 * volume[i] / volume_base[i] for i in range(len(iterations))]
 
-    # # TODO: разкомментировать по необходиомости
-    # # Производим интерполяцию по найденным метрикам
-    # y_length = make_interpolation(iterations, line_length)
-    # y_square = make_interpolation(iterations, square)
-    # y_volume = make_interpolation(iterations, volume)
-
-    # Строим графики для найденных и апроксимируемыъ метрик.
-    fig1, ax1 = plt.subplots()
-    ax1.plot(iterations, line_length, 'o', label=r'$a$', c='black', linewidth=1)
-    # ax1.plot(iterations, y_length, '-', label=r'$b$', c='red', linewidth=1)
-    fig2, ax2 = plt.subplots()
-    ax2.plot(iterations, square, 'X', label=r'$a$', c='black', linewidth=1)
-    # ax2.plot(iterations, y_square, '-', label=r'$b$', c='red', linewidth=1)
-    fig3, ax3 = plt.subplots()
-    ax3.plot(iterations, volume, '*', label=r'$a$', c='black', linewidth=1)
-    # ax3.plot(iterations, y_volume, '-', label=r'$b$', c='red', linewidth=1)
-    fig4, ax4 = plt.subplots()
-    ax4.plot(iterations, s_l, '*', label=r'$a$', c='black', linewidth=1)
-    fig5, ax5 = plt.subplots()
-    ax5.plot(iterations, v_s, '*', label=r'$a$', c='black', linewidth=1)
-    fig6, ax6 = plt.subplots()
-    ax6.plot(iterations, v_l, '*', label=r'$a$', c='black', linewidth=1)
-    fig7, ax7 = plt.subplots()
-    ax7.plot(iterations, v_v_base, '*', label=r'$a$', c='black', linewidth=1)
-
     with open(f'./metrics/datasets/several_phases/iterations_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(iterations, f)
 
@@ -606,58 +583,8 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
     with open(f'./metrics/datasets/several_phases/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
         pickle.dump(v_v_base, f)
 
-    ax1.grid(True)
-    ax2.grid(True)
-    ax3.grid(True)
-    ax4.grid(True)
-    ax5.grid(True)
-    ax6.grid(True)
-    ax7.grid(True)
-
-    ax1.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax1.set(xlabel='Число циклов роста, ед.', ylabel='Длина фрактальной линии, ед.')
-
-    ax2.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax2.set(xlabel='Число циклов роста, ед.', ylabel='Площадь фрактала, ед.')
-
-    ax3.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax3.set(xlabel='Число циклов роста, ед.', ylabel='Объем фрактала, ед.')
-
-    ax4.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax4.set(xlabel='Число циклов роста, ед.', ylabel='Отношение S/L, ед.')
-
-    ax5.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax5.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/S, ед.')
-
-    ax6.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax6.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/L, ед.')
-
-    ax7.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
-    ax7.set(xlabel='Число циклов роста, ед.', ylabel='Отношение 4*V1/V0, ед.')
-    #
-    # setting label sizes after creation
-    # ax1.xaxis.label.set_size(10)
-    # ax1.yaxis.label.set_size(10)
-    #
-    # ax2.xaxis.label.set_size(10)
-    # ax2.yaxis.label.set_size(10)
-    #
-    # ax3.xaxis.label.set_size(10)
-    # ax3.yaxis.label.set_size(10)
-    #
-    # plt.xticks(fontsize=15)
-    # plt.yticks(fontsize=15)
-    # plt.legend(fontsize=15)
-    #
-    fig1.savefig(f'./metrics/graphics/several_phases/length.png')
-    fig2.savefig(f'./metrics/graphics/several_phases/square.png')
-    fig3.savefig(f'./metrics/graphics/several_phases/value.png')
-    fig4.savefig(f'./metrics/graphics/several_phases/s_l.png')
-    fig5.savefig(f'./metrics/graphics/several_phases/v_s.png')
-    fig6.savefig(f'./metrics/graphics/several_phases/v_l.png')
-    fig7.savefig(f'./metrics/graphics/several_phases/4v1_v0.png')
-
-    plt.show()
+    with open(f'./metrics/datasets/several_phases/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+        pickle.dump(fractal_span, f)
 
     print(f'Количество тетраэдров = {len(tetrahedrons)} в многофазном методе при глубине = {depth}')
 
