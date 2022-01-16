@@ -73,6 +73,8 @@ class Face:
         данный треугольник является побочным, т.е. тем, который не средний при разбиении. TODO: временное решение,
         TODO: возможно это  необходимо как-то обыграть в будущем.
         """
+        self._id = str(uuid.uuid4())
+
         self.p1 = p1
         self.p2 = p2
         self.p3 = p3
@@ -92,6 +94,14 @@ class Face:
 
     def __repr__(self):
         return f'Face: {self._line1}; {self._line2}; {self._line3}'
+
+    @property
+    def id(self):
+        """
+
+        :return:
+        """
+        return self._id
 
     @property
     def square(self) -> float:

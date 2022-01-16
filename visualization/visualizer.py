@@ -3,6 +3,7 @@ from ursina import Ursina, camera, window, Light, color, scene, Entity, held_key
 from calculations.classic_one_phase import calculate as classic_one_phase_calc
 from calculations.one_phase import calculate as one_phase_calc
 from calculations.several_phases import calculate as several_phase_calc
+from calculations.new_several_phases import calculate as new_several_phase_calc
 from calculations.stochasticity import calculate as stochastic_calc
 from calculations.functional_one_phase import calculate as functional_calc
 from visualization.entity import Builder
