@@ -8,7 +8,7 @@ from calculations.stochasticity import calculate as stochastic_calc
 from calculations.functional_one_phase import calculate as functional_calc
 from visualization.entity import Builder
 
-MAX_DEPTH = 7
+MAX_DEPTH = 3
 LIMIT_VALUE = 2.0
 
 # ONE PHASE CONSTANTS

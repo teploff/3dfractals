@@ -240,10 +240,10 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
 
     # Создаем массив активных треугольников, на которых будем растить последующие тетраэдры, и добавляем в него
     # существующие треугольники, из которых состоит тетраэдр.
-    triangle1 = Face(s_p1, s_p2, s_p3, depth, tetrahedron, True, True)
-    triangle2 = Face(s_p1, s_p4, s_p2, depth, tetrahedron)
-    triangle3 = Face(s_p1, s_p4, s_p3, depth, tetrahedron)
-    triangle4 = Face(s_p2, s_p4, s_p3, depth, tetrahedron)
+    triangle1 = Face(s_p1, s_p2, s_p3, depth, tetrahedron, True, True, cousin=tetrahedron)
+    triangle2 = Face(s_p1, s_p4, s_p2, depth, tetrahedron, cousin=tetrahedron)
+    triangle3 = Face(s_p1, s_p4, s_p3, depth, tetrahedron, cousin=tetrahedron)
+    triangle4 = Face(s_p2, s_p4, s_p3, depth, tetrahedron, cousin=tetrahedron)
     triangles = [triangle1, triangle2, triangle3, triangle4]
 
     # Объявляем массив инкрементов для каждого из тетраэдра. В данном случае для базового тетраэдра
@@ -321,7 +321,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
         for i, triangle in enumerate(triangles):
             # Если текущая итерация роста родительского тетраэдра не равна времени появления дочернего тетраэдра, то
             # ждем этого момента
-            if triangles_info["birth"][triangle.id] != tetrahedron_info["iterations"]["current"][triangle.parent.id]:
+            if triangles_info["birth"][triangle.id] != tetrahedron_info["iterations"]["current"][triangle.cousin.id]:
                 temp_triangles.append(triangle)
             else:
                 # Тут необходима проверка. Так как выросший треугольник может быть неактуальным для дальнейшего роста
@@ -384,9 +384,10 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
                         birth = help_map[depth - triangle.max_depth]
 
                     # Добавляем, которые на тетраэдре
-                    triangle11 = Face(mp1, p4, mp2, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
-                    triangle22 = Face(mp1, p4, mp3, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
-                    triangle33 = Face(mp2, p4, mp3, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
+                    # TODO: костыль жесткий насчет FALSE и cousin
+                    triangle11 = Face(mp1, p4, mp2, triangle.max_depth - 1, tetrahedron, triangle.mark, False, cousin=tetrahedron)
+                    triangle22 = Face(mp1, p4, mp3, triangle.max_depth - 1, tetrahedron, triangle.mark, False, cousin=tetrahedron)
+                    triangle33 = Face(mp2, p4, mp3, triangle.max_depth - 1, tetrahedron, triangle.mark, False, cousin=tetrahedron)
 
                     triangles_info["birth"][triangle11.id] = birth
                     triangles_info["birth"][triangle22.id] = birth
@@ -405,9 +406,9 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
                     mp22 = calc_midpoint(triangle.p2, triangle.p3)
                     mp33 = calc_midpoint(triangle.p1, triangle.p3)
 
-                    triangle1 = Face(triangle.p1, mp11, mp33, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
-                    triangle2 = Face(mp11, triangle.p2, mp22, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
-                    triangle3 = Face(mp22, triangle.p3, mp33, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
+                    triangle1 = Face(triangle.p1, mp11, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special, cousin=tetrahedron)
+                    triangle2 = Face(mp11, triangle.p2, mp22, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special, cousin=tetrahedron)
+                    triangle3 = Face(mp22, triangle.p3, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special, cousin=tetrahedron)
 
                     triangles_info["birth"][triangle1.id] = birth
                     triangles_info["birth"][triangle2.id] = birth
