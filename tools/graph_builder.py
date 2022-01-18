@@ -362,6 +362,104 @@ def build_several_phases(iter_count: int, depth: int, deltas: List[int]):
     plt.show()
 
 
+def build_new_several_phases(iter_count: int, depth: int):
+    with open(f'../metrics/datasets/new_several_phases/iterations_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+        iterations1 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/new_several_phases/length_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+        line_length1 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/new_several_phases/square_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+        square1 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/new_several_phases/volume_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+        volume1 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/new_several_phases/s_l_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+        s_l1 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/new_several_phases/v_s_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+        v_s1 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/new_several_phases/v_l_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+        v_l1 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/new_several_phases/v_v_base_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+        v_v_base1 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/new_several_phases/fractal_span_iter_count_{iter_count}_depth_{depth}.txt', 'rb') as fp:
+        fractal_span1 = pickle.load(fp)
+
+    # Строим графики для найденных и апроксимируемыъ метрик.
+    fig1, ax1 = plt.subplots()
+    ax1.plot(iterations1, line_length1, 'o', label=r'$1$', c='black', linewidth=1)
+
+    fig2, ax2 = plt.subplots()
+    ax2.plot(iterations1, square1, 'X', label=r'$1$', c='black', linewidth=1)
+
+    fig3, ax3 = plt.subplots()
+    ax3.plot(iterations1, volume1, '*', label=r'$1$', c='black', linewidth=1)
+
+    fig4, ax4 = plt.subplots()
+    ax4.plot(iterations1, s_l1, '*',  label=r'$1$', c='black', linewidth=1)
+
+    fig5, ax5 = plt.subplots()
+    ax5.plot(iterations1, v_s1, '*', label=r'$1$', c='black', linewidth=1)
+
+    fig6, ax6 = plt.subplots()
+    ax6.plot(iterations1, v_l1, '*', label=r'$1$', c='black', linewidth=1)
+
+    fig7, ax7 = plt.subplots()
+    ax7.plot(iterations1, v_v_base1, '*', label=r'$1$', c='black', linewidth=1)
+
+    fig8, ax8 = plt.subplots()
+    ax8.plot(iterations1, fractal_span1, '*', label=r'$1$', c='black', linewidth=1)
+
+    ax1.grid(True)
+    ax2.grid(True)
+    ax3.grid(True)
+    ax4.grid(True)
+    ax5.grid(True)
+    ax6.grid(True)
+    ax7.grid(True)
+    ax8.grid(True)
+
+    ax1.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax1.set(xlabel='Число циклов роста, ед.', ylabel='Длина фрактальной линии, ед.')
+
+    ax2.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax2.set(xlabel='Число циклов роста, ед.', ylabel='Площадь фрактала, ед.')
+
+    ax3.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax3.set(xlabel='Число циклов роста, ед.', ylabel='Объем фрактала, ед.')
+
+    ax4.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax4.set(xlabel='Число циклов роста, ед.', ylabel='Отношение S/L, ед.')
+
+    ax5.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax5.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/S, ед.')
+
+    ax6.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax6.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/L, ед.')
+
+    ax7.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax7.set(xlabel='Число циклов роста, ед.', ylabel='Отношение 4*V1/V0, ед.')
+
+    ax8.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax8.set(xlabel='Число циклов роста, ед.', ylabel='Размах фрактала, ед.')
+
+    fig1.savefig(f'../metrics/graphics/new_several_phases/length.png')
+    fig2.savefig(f'../metrics/graphics/new_several_phases/square.png')
+    fig3.savefig(f'../metrics/graphics/new_several_phases/value.png')
+    fig4.savefig(f'../metrics/graphics/new_several_phases/s_l.png')
+    fig5.savefig(f'../metrics/graphics/new_several_phases/v_s.png')
+    fig6.savefig(f'../metrics/graphics/new_several_phases/v_l.png')
+    fig7.savefig(f'../metrics/graphics/new_several_phases/4v1_v0.png')
+    fig8.savefig(f'../metrics/graphics/new_several_phases/fractal_span.png')
+
+    plt.show()
+
+
 def build_stochastic(iter_count: int, depth: int, l_rndms: List[float]):
     with open(f'../metrics/datasets/stochasticity/iterations_iter_count_{iter_count}_depth_{depth}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
         iterations1 = pickle.load(fp)
@@ -536,4 +634,5 @@ if __name__ == '__main__':
     build_classic_one_phase(1000, 7)
     build_one_phase(1000, 7)
     build_several_phases(1000, 7, [1, 200, 400])
+    build_new_several_phases(1000, 7)
     build_stochastic(1000, 7, [0.6, 0.75, 0.9])
