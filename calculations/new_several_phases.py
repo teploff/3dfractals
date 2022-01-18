@@ -214,7 +214,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     s_coefficient = 0.05
 
     # Значения погрешности, которое будем сопоставлять при достижении отрезка нужной длины (limit_value)
-    fault = 0.02
+    fault = 0.001
 
     # Начальные преобразования тетраэдра. Уменьшаем его четыре точки на коефициент s_coefficient
     s_p1 *= s_coefficient
