@@ -8,11 +8,11 @@ from calculations.stochasticity import calculate as stochastic_calc
 from calculations.functional_one_phase import calculate as functional_calc
 from visualization.entity import Builder
 
-MAX_DEPTH = 2
+MAX_DEPTH = 7
 LIMIT_VALUE = 2.0
 
 # ONE PHASE CONSTANTS
-ITER_COUNT = 50
+ITER_COUNT = 1000
 
 # SEVERAL PHASES CONSTANTS
 ITER_TETRAHEDRON_COUNT = 30
