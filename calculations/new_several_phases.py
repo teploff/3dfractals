@@ -191,14 +191,13 @@ def undergrown_tetrahedron_exists(depths: dict) -> bool:
     return False
 
 
-def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int, only_for_metrics: bool = False) -> List[List[Model]]:
+def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics: bool = False) -> List[List[Model]]:
     """
     Вычисление новой многофазной модели. Отличие от существующей многофазной модели в том, что дочерние тетраэдры
     появляются раньше времни, когда родительский тетраэдр достиг значения limit_value.
     :param iter_count: количество итераций роста
     :param limit_value: предальное значение отрезка
     :param depth: глубина фраткальной структуры
-    :param delta_iters: количество итераций, прибавляемое при создании тетраэдра. Необходимо для получения эффекта стохастичности.
     :param only_for_metrics: если мы хотим собрать лишь метрики, то нам нет необходимости забивать оперативу данными для
      визуализации. Поэтому, если флаг будет в True, ребра и треугольники для движка Ursina собираться не будут
     :return:
@@ -215,7 +214,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
     s_coefficient = 0.05
 
     # Значения погрешности, которое будем сопоставлять при достижении отрезка нужной длины (limit_value)
-    fault = 0.001
+    fault = 0.02
 
     # Начальные преобразования тетраэдра. Уменьшаем его четыре точки на коефициент s_coefficient
     s_p1 *= s_coefficient
@@ -283,12 +282,6 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
     # которые будут являться донорами новых тетраэдров. Секция birth опредеояет, какой треугольник и когда должен
     # зараждаться.
     triangles_info = {
-        "new": {
-            triangle1.id: True,
-            triangle2.id: True,
-            triangle3.id: True,
-            triangle4.id: True,
-        },
         "birth": {
             triangle1.id: tetrahedron_info["iterations"]["per_order"][triangle1.parent.id] - delta_birth,
             triangle2.id: tetrahedron_info["iterations"]["per_order"][triangle2.parent.id] - delta_birth,
@@ -328,9 +321,15 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
         for i, triangle in enumerate(triangles):
             # Если текущая итерация роста родительского тетраэдра не равна времени появления дочернего тетраэдра, то
             # ждем этого момента
-            if triangles_info["birth"][triangle.id] != tetrahedron_info["iterations"]["current"][triangle.parent]:
+            if triangles_info["birth"][triangle.id] != tetrahedron_info["iterations"]["current"][triangle.parent.id]:
                 temp_triangles.append(triangle)
             else:
+                # Тут необходима проверка. Так как выросший треугольник может быть неактуальным для дальнейшего роста
+                # по причине того, что треугольник лежит на тетраэдре, глубина которого уже равна предельному значению
+                # роста
+                if triangle.max_depth == 0:
+                    continue
+
                 # Находим серединные точки к прямым
                 # Так же находим пропорциональную высоту
                 mp1 = calc_midpoint(triangle.p1, triangle.p2)
@@ -349,13 +348,17 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
 
                 # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
                 s_p_c = find_centroid(mp1, mp2, mp3, p4)
+
+                # Высчитываем начальную длину, на основе которой будем вычислять шаг инкрементирования
+                s_len = Line(mp1, mp2).length
+
                 # количество необходимых итераций вычисояется суммированием ожидаемого родителского значения с разницей
                 # итераций, на сколько раньше начал расти дочерний
-                iters = tetrahedron_info["iterations"]["per_order"][triangle.parent] + tetrahedron_info["iterations"]["per_order"][triangle.parent] - triangles_info["birth"][triangle.id]
-                delta_p1 = find_step_growth(s_len, limit_value, iters, s_p1, s_p_c)
-                delta_p2 = find_step_growth(s_len, limit_value, iters, s_p2, s_p_c)
-                delta_p3 = find_step_growth(s_len, limit_value, iters, s_p3, s_p_c)
-                delta_p4 = find_step_growth(s_len, limit_value, iters, s_p4, s_p_c)
+                iters = iter_count + iter_count - triangles_info["birth"][triangle.id]
+                delta_p1 = find_step_growth(s_len, limit_value, iters, mp1, s_p_c)
+                delta_p2 = find_step_growth(s_len, limit_value, iters, mp2, s_p_c)
+                delta_p3 = find_step_growth(s_len, limit_value, iters, mp3, s_p_c)
+                delta_p4 = find_step_growth(s_len, limit_value, iters, p4, s_p_c)
 
                 # Добавляем найденный и приобразованный тетраэдр в список всех тетраэдров
                 # Если треугольник помечен, как интересущий нас для сбора метрики, то помечаем тетраэдр и все
@@ -369,11 +372,30 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
                 tetrahedron_info["iterations"]["per_order"][tetrahedron.id] = limit_value
                 tetrahedron_info["iterations"]["current"][tetrahedron.id] = 0
                 tetrahedron_info["depths"]["current"][tetrahedron.id] = -1
-                tetrahedron_info["depths"]["maximum"][tetrahedron.id] = 1 # TODO: подумать
+                tetrahedron_info["depths"]["maximum"][tetrahedron.id] = triangle.max_depth - 1
 
-                # TODO: остановился тут
                 # Проверка на то, чтобы не записать в список активных треугольников те, которые больше не должны расти
                 if triangle.max_depth - 1 != 0:
+                    # Определяем
+                    if (depth - triangle.max_depth) not in help_map:
+                        birth = iter_count - random.randint(1, int(0.1 * iter_count))
+                        help_map[depth - triangle.max_depth] = birth
+                    else:
+                        birth = help_map[depth - triangle.max_depth]
+
+                    # Добавляем, которые на тетраэдре
+                    triangle11 = Face(mp1, p4, mp2, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
+                    triangle22 = Face(mp1, p4, mp3, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
+                    triangle33 = Face(mp2, p4, mp3, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
+
+                    triangles_info["birth"][triangle11.id] = birth
+                    triangles_info["birth"][triangle22.id] = birth
+                    triangles_info["birth"][triangle33.id] = birth
+
+                    temp_triangles.append(triangle11)
+                    temp_triangles.append(triangle22)
+                    temp_triangles.append(triangle33)
+
                     # Так как каждая из граней, когда вырастает до значение limit_value должна делиться поровну на 4
                     # части (четыре равных треугольника) и на одну из них мы уже поставили тетраэдр (на центарльную).
                     # Существую еще три, которые расположены слева, справа и сверху над описанным. Добавим эти
@@ -382,15 +404,18 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
                     mp11 = calc_midpoint(triangle.p1, triangle.p2)
                     mp22 = calc_midpoint(triangle.p2, triangle.p3)
                     mp33 = calc_midpoint(triangle.p1, triangle.p3)
-                    temp_triangles.append(
-                        Face(triangle.p1, mp11, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark,
-                             triangle.special))
-                    temp_triangles.append(
-                        Face(mp11, triangle.p2, mp22, triangle.max_depth - 1, triangle.parent, triangle.mark,
-                             triangle.special))
-                    temp_triangles.append(
-                        Face(mp22, triangle.p3, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark,
-                             triangle.special))
+
+                    triangle1 = Face(triangle.p1, mp11, mp33, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
+                    triangle2 = Face(mp11, triangle.p2, mp22, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
+                    triangle3 = Face(mp22, triangle.p3, mp33, triangle.max_depth - 1, tetrahedron, triangle.mark, triangle.special)
+
+                    triangles_info["birth"][triangle1.id] = birth
+                    triangles_info["birth"][triangle2.id] = birth
+                    triangles_info["birth"][triangle3.id] = birth
+
+                    temp_triangles.append(triangle1)
+                    temp_triangles.append(triangle2)
+                    temp_triangles.append(triangle3)
 
                     # Теперь заносим точку в словарь, чтоб отследить ее после роста и пересчитать
                     recalc_middle_points[mp11] = [triangle.p1, triangle.p2]
@@ -456,6 +481,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, delta_iters: int,
 
             # Необходимо проверить вырос ли текущий тетраэдр. Если да, инкрементировать ему текущую глубину на 1,
             # увеличить предел роста на x2 и обновить инкрименты
+            # print(f'current length = {Line(tetrahedron.p1, tetrahedron.p2).length}; limits = {tetrahedron_info["limits"][tetrahedron.id]}')
             if abs(Line(tetrahedron.p1, tetrahedron.p2).length - tetrahedron_info["limits"][tetrahedron.id]) <= fault:
                 tetrahedron_info["depths"]["current"][tetrahedron.id] += 1
 
