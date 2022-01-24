@@ -23,13 +23,13 @@ class Builder:
 
         model = self.sequence[item][0]
         parent_entity = Entity(model=Mesh(vertices=model.vertices, triangles=model.triangles, thickness=4,
-                                          mode='line'), scale=2, color=color.yellow)
+                                          mode='line'), scale=2, color=color.black)
 
         if len(self.sequence[item]) == 1:
             return parent_entity
 
         for model in self.sequence[item][1:]:
             Entity(model=Mesh(vertices=model.vertices, triangles=model.triangles, thickness=4, mode='line'),
-                   scale=2, color=color.yellow)
+                   scale=2, color=color.black)
 
         return parent_entity

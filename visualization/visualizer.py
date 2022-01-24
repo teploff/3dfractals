@@ -26,7 +26,7 @@ class Game(Ursina):
     def __init__(self):
         super().__init__()
 
-        window.color = color.black
+        window.color = color.white
         window.fullscreen_size = 1920, 1080
         window.fullscreen = False
 
