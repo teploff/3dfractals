@@ -215,7 +215,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
     s_coefficient = 0.05
 
     # Значения погрешности, которое будем сопоставлять при достижении отрезка нужной длины (а)
-    fault = 0.01
+    fault = float(limit_value) / float(iter_count)
 
     # Начальные преобразования тетраэдра. Уменьшаем его четыре точки на коефициент s_coefficient
     s_p1 *= s_coefficient
@@ -269,12 +269,12 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
     # После того, как вырастили родительский тетраэдр. Формируем массив активных треугольников, на которых будем растить
     # последующие тетраэдры. Одному треугольнику даем метку, чтоб отследить тетраэдры, которые учасвтсввуют в
     # вычислении метрик общей фигуры: длины, площади и объема.
-    triangles = [
-        Face(s_p1, s_p2, s_p3, depth, tetrahedron, True, True, limit=limit_value, cousin=None),
-        Face(s_p1, s_p4, s_p2, depth, tetrahedron, limit=limit_value, cousin=None),
-        Face(s_p1, s_p4, s_p3, depth, tetrahedron, limit=limit_value, cousin=None),
-        Face(s_p2, s_p4, s_p3, depth, tetrahedron, limit=limit_value, cousin=None),
-    ]
+    triangle1 = Face(s_p1, s_p2, s_p3, depth, tetrahedron, True, True, limit=limit_value, cousin=None)
+    triangle2 = Face(s_p1, s_p4, s_p2, depth, tetrahedron, limit=limit_value, cousin=None)
+    triangle3 = Face(s_p1, s_p4, s_p3, depth, tetrahedron, limit=limit_value, cousin=None)
+    triangle4 = Face(s_p2, s_p4, s_p3, depth, tetrahedron, limit=limit_value, cousin=None)
+    triangles = [triangle1, triangle2, triangle3,triangle4]
+
     # Необходимо обновить инкрименты к базовому тетраэдру
     # Вычисляем центр тетраэдра и приращение для дальнейших вычилений роста
     s_p_c = find_centroid(tetrahedron.p1, tetrahedron.p2, tetrahedron.p3, tetrahedron.p4)
@@ -290,6 +290,17 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
     # Объявляем массим пределов, до какого предела растить тетраэдр. Для базового тетраэдра необхоимо обновить шаг
     # роста, ведь финальная длина поменяется на x2
     tetrahedron_info = {
+        "faults": {
+            "tetrahedrons": {
+                tetrahedron.id: fault
+            },
+            "triangles": {
+                triangle1.id: fault,
+                triangle2.id: fault,
+                triangle3.id: fault,
+                triangle4.id: fault
+            }
+        },
         "increments": {
             tetrahedron.id: [delta_p1, delta_p2, delta_p3, delta_p4]
         },
@@ -322,7 +333,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
         # тетраэдры
         temp_triangles = []
         for i, triangle in enumerate(triangles):
-            if abs(Line(triangle.p1, triangle.p2).length - triangle.limit) > fault:
+            if abs(Line(triangle.p1, triangle.p2).length - triangle.limit) > tetrahedron_info["faults"]["triangles"][triangle.id]:
                 temp_triangles.append(triangle)
             else:
                 # Тут необходима проверка. Так как выросший треугольник может быть неактуальным для дальнейшего роста
@@ -377,6 +388,8 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
                 delta_p3 = find_step_growth(s_len, limit, iters, mp3, s_p_c)
                 delta_p4 = find_step_growth(s_len, limit, iters, p4, s_p_c)
 
+                fault = float(limit) / float(iters)
+
                 # Добавляем найденный и приобразованный тетраэдр в список всех тетраэдров
                 # Если треугольник помечен, как интересущий нас для сбора метрики, то помечаем тетраэдр и все
                 # произвольные от него трегольники. # Иначе считаем его обычным
@@ -392,6 +405,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
                 tetrahedron_info["depths"]["maximum"][tetrahedron.id] = triangle.max_depth - 1
                 tetrahedron_info["iterations_count"][tetrahedron.id] = iters
                 tetrahedron_info["new"][tetrahedron.id] = True
+                tetrahedron_info["faults"]["tetrahedrons"][tetrahedron.id] = fault
 
                 # Так как каждая из граней, когда вырастает до значение limit_value должна делиться поровну на 4 части
                 # (четыре равных треугольника) и на одну из них мы уже поставили тетраэдр (на центарльную). Существую
@@ -402,9 +416,16 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
                 mp22 = calc_midpoint(triangle.p2, triangle.p3)
                 mp33 = calc_midpoint(triangle.p1, triangle.p3)
 
-                temp_triangles.append(Face(triangle.p1, mp11, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special, limit=limit, cousin=tetrahedron))
-                temp_triangles.append(Face(mp11, triangle.p2, mp22, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special, limit=limit, cousin=tetrahedron))
-                temp_triangles.append(Face(mp22, triangle.p3, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special, limit=limit, cousin=tetrahedron))
+                triangle1 = Face(triangle.p1, mp11, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special, limit=limit, cousin=tetrahedron)
+                triangle2 = Face(mp11, triangle.p2, mp22, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special, limit=limit, cousin=tetrahedron)
+                triangle3 = Face(mp22, triangle.p3, mp33, triangle.max_depth - 1, triangle.parent, triangle.mark, triangle.special, limit=limit, cousin=tetrahedron)
+                temp_triangles.append(triangle1)
+                temp_triangles.append(triangle2)
+                temp_triangles.append(triangle3)
+
+                tetrahedron_info["faults"]["triangles"][triangle1.id] = fault
+                tetrahedron_info["faults"]["triangles"][triangle2.id] = fault
+                tetrahedron_info["faults"]["triangles"][triangle3.id] = fault
 
                 # Теперь заносим точку в словарь, чтоб отследить ее после роста и пересчитать
                 recalc_middle_points[mp11] = [triangle.p1, triangle.p2]
@@ -434,7 +455,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
                     ursina_curr_stage.append(Model(vertices=v1, triangles=t1))
                 continue
 
-            if abs(Line(tetrahedron.p1, tetrahedron.p2).length - tetrahedron_info["limits"][tetrahedron.id]) > fault:
+            if abs(Line(tetrahedron.p1, tetrahedron.p2).length - tetrahedron_info["limits"][tetrahedron.id]) > tetrahedron_info["faults"]["tetrahedrons"][tetrahedron.id]:
                 tetrahedron.p1 += tetrahedron_info["increments"][tetrahedron.id][0]
                 tetrahedron.p2 += tetrahedron_info["increments"][tetrahedron.id][1]
                 tetrahedron.p3 += tetrahedron_info["increments"][tetrahedron.id][2]
@@ -482,7 +503,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
 
             # Необходимо проверить вырос ли текущий тетраэдр. Если да, инкрементировать ему текущую глубину на 1,
             # увеличить предел роста на x2 и обновить инкрименты
-            if abs(Line(tetrahedron.p1, tetrahedron.p2).length - tetrahedron_info["limits"][tetrahedron.id]) <= fault:
+            if abs(Line(tetrahedron.p1, tetrahedron.p2).length - tetrahedron_info["limits"][tetrahedron.id]) <= tetrahedron_info["faults"]["tetrahedrons"][tetrahedron.id]:
                 tetrahedron_info["depths"]["current"][tetrahedron.id] += 1
 
                 # Проверяем нужно ли вычислять данному тетраэдру инкрименты или
@@ -502,9 +523,18 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
                 # для татраэдра. Старые учитывать нельзя!
                 if rookie:
                     max_depth = tetrahedron_info["depths"]["maximum"][tetrahedron.id]
-                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, max_depth, tetrahedron, tetrahedron.parent.mark, triangle.special, limit=tetrahedron_info["limits"][tetrahedron.id], cousin=None))
-                    new_triangles.append(Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, tetrahedron.parent.mark, triangle.special, limit=tetrahedron_info["limits"][tetrahedron.id], cousin=None))
-                    new_triangles.append(Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, tetrahedron.parent.mark, triangle.special, limit=tetrahedron_info["limits"][tetrahedron.id], cousin=None))
+
+                    triangle1 = Face(tetrahedron.p1, tetrahedron.p2, tetrahedron.p4, max_depth, tetrahedron, tetrahedron.parent.mark, triangle.special, limit=tetrahedron_info["limits"][tetrahedron.id], cousin=None)
+                    triangle2 = Face(tetrahedron.p2, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, tetrahedron.parent.mark, triangle.special, limit=tetrahedron_info["limits"][tetrahedron.id], cousin=None)
+                    triangle3 = Face(tetrahedron.p1, tetrahedron.p3, tetrahedron.p4, max_depth, tetrahedron, tetrahedron.parent.mark, triangle.special, limit=tetrahedron_info["limits"][tetrahedron.id], cousin=None)
+
+                    new_triangles.append(triangle1)
+                    new_triangles.append(triangle2)
+                    new_triangles.append(triangle3)
+
+                    tetrahedron_info["faults"]["triangles"][triangle1.id] = tetrahedron_info["faults"]["tetrahedrons"][tetrahedron.id]
+                    tetrahedron_info["faults"]["triangles"][triangle2.id] = tetrahedron_info["faults"]["tetrahedrons"][tetrahedron.id]
+                    tetrahedron_info["faults"]["triangles"][triangle3.id] = tetrahedron_info["faults"]["tetrahedrons"][tetrahedron.id]
 
                     del tetrahedron_info["new"][tetrahedron.id]
 
@@ -578,31 +608,31 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
     v_l = [volume[i] / line_length[i] for i in range(len(iterations))]
     v_v_base = [4 * volume[i] / volume_base[i] for i in range(len(iterations))]
 
-    with open(f'./metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(iterations, f)
 
-    with open(f'./metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(line_length, f)
 
-    with open(f'./metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(square, f)
 
-    with open(f'./metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(volume, f)
 
-    with open(f'./metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(s_l, f)
 
-    with open(f'./metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(v_s, f)
 
-    with open(f'./metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(v_l, f)
 
-    with open(f'./metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(v_v_base, f)
 
-    with open(f'./metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(fractal_span, f)
 
     print(f'Количество тетраэдров = {len(tetrahedrons)} в комбинированном методе при глубине = {depth}')
