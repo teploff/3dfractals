@@ -630,9 +630,401 @@ def build_stochastic(iter_count: int, depth: int, l_rndms: List[float]):
     plt.show()
 
 
+def build_combined(iter_count: int, depth: int, deltas: List[int], l_rndms: List[float]):
+    # 0--------------------------------------------------------------------------------------------------------------------------------------------------
+    with open(f'../metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        iterations00 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        line_length00 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        square00 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        volume00 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        s_l00 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        v_s00 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        v_l00 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        v_v_base00 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        fractal_span00 = pickle.load(fp)
+
+
+    with open(f'../metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        iterations01 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        line_length01 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        square01 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        volume01 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        s_l01 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        v_s01 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        v_l01 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        v_v_base01 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        fractal_span01 = pickle.load(fp)
+
+
+    with open(f'../metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        iterations02 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        line_length02 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        square02 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        volume02 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        s_l02 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        v_s02 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        v_l02 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        v_v_base02 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{deltas[0]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        fractal_span02 = pickle.load(fp)
+    # 0---------------------------------------------------------------------------------------------------------------------------------------------------
+
+    # 1---------------------------------------------------------------------------------------------------------------------------------------------------
+    with open(f'../metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        iterations10 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        line_length10 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        square10 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        volume10 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        s_l10 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        v_s10 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        v_l10 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        v_v_base10 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        fractal_span10 = pickle.load(fp)
+
+
+    with open(f'../metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        iterations11 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        line_length11 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        square11 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        volume11 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        s_l11 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        v_s11 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        v_l11 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        v_v_base11 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        fractal_span11 = pickle.load(fp)
+
+
+    with open(f'../metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        iterations12 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        line_length12 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        square12 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        volume12 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        s_l12 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        v_s12 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        v_l12 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        v_v_base12 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{deltas[1]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        fractal_span12 = pickle.load(fp)
+    # 1-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    # 2-------------------------------------------------------------------------------------------------------------------------------------------------------
+    with open(f'../metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        iterations20 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        line_length20 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        square20 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        volume20 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        s_l20 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        v_s20 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        v_l20 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        v_v_base20 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[0]}.txt', 'rb') as fp:
+        fractal_span20 = pickle.load(fp)
+
+
+    with open(f'../metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        iterations21 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        line_length21 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        square21 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        volume21 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        s_l21 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        v_s21 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        v_l21 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        v_v_base21 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[1]}.txt', 'rb') as fp:
+        fractal_span21 = pickle.load(fp)
+
+
+    with open(f'../metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        iterations22 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        line_length22 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        square22 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        volume22 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        s_l22 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        v_s22 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        v_l22 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        v_v_base22 = pickle.load(fp)
+
+    with open(f'../metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{deltas[2]}_l_rnd_{l_rndms[2]}.txt', 'rb') as fp:
+        fractal_span22 = pickle.load(fp)
+    # 2-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    # Строим графики для найденных и апроксимируемыъ метрик.
+    fig1, ax1 = plt.subplots()
+    ax1.plot(iterations00, line_length00, 'o', label=r'$1;0.6$', c='black', linewidth=1)
+    ax1.plot(iterations01, line_length01, 'o', label=r'$1;0.75$', c='red', linewidth=1)
+    ax1.plot(iterations02, line_length02, 'o', label=r'$1;0.9$', c='blue', linewidth=1)
+    ax1.plot(iterations10, line_length10, 'o', label=r'$200;0.6$', c='green', linewidth=1)
+    ax1.plot(iterations11, line_length11, 'o', label=r'$200;0.75$', c='violet', linewidth=1)
+    ax1.plot(iterations12, line_length12, 'o', label=r'$200;0.9$', c='yellow', linewidth=1)
+    ax1.plot(iterations20, line_length20, 'o', label=r'$400;0.6$', c='orange', linewidth=1)
+    ax1.plot(iterations21, line_length21, 'o', label=r'$400;0.75$', c='pink', linewidth=1)
+    ax1.plot(iterations22, line_length22, 'o', label=r'$400;0.9$', c='brown', linewidth=1)
+
+    fig2, ax2 = plt.subplots()
+    ax2.plot(iterations00, square00, 'X', label=r'$1;0.6$', c='black', linewidth=1)
+    ax2.plot(iterations01, square01, 'X', label=r'$1;0.75$', c='red', linewidth=1)
+    ax2.plot(iterations02, square02, 'X', label=r'$1;0.9$', c='blue', linewidth=1)
+    ax2.plot(iterations10, square10, 'X', label=r'$200;0.9$', c='green', linewidth=1)
+    ax2.plot(iterations11, square11, 'X', label=r'$200;0.9$', c='violet', linewidth=1)
+    ax2.plot(iterations12, square12, 'X', label=r'$200;0.9$', c='yellow', linewidth=1)
+    ax2.plot(iterations20, square20, 'X', label=r'$400;0.9$', c='orange', linewidth=1)
+    ax2.plot(iterations21, square21, 'X', label=r'$400;0.9$', c='pink', linewidth=1)
+    ax2.plot(iterations22, square22, 'X', label=r'$400;0.9$', c='brown', linewidth=1)
+
+    fig3, ax3 = plt.subplots()
+    ax3.plot(iterations00, volume00, '*', label=r'$1;0.6$', c='black', linewidth=1)
+    ax3.plot(iterations01, volume01, '*', label=r'$1;0.75$', c='red', linewidth=1)
+    ax3.plot(iterations02, volume02, '*', label=r'$1;0.9$', c='blue', linewidth=1)
+    ax3.plot(iterations10, volume10, '*', label=r'$200;0.6$', c='green', linewidth=1)
+    ax3.plot(iterations11, volume11, '*', label=r'$200;0.75$', c='violet', linewidth=1)
+    ax3.plot(iterations12, volume12, '*', label=r'$200;0.9$', c='yellow', linewidth=1)
+    ax3.plot(iterations20, volume20, '*', label=r'$400;0.6$', c='orange', linewidth=1)
+    ax3.plot(iterations21, volume21, '*', label=r'$400;0.75$', c='pink', linewidth=1)
+    ax3.plot(iterations22, volume22, '*', label=r'$400;0.9$', c='brown', linewidth=1)
+
+    fig4, ax4 = plt.subplots()
+    ax4.plot(iterations00, s_l00, '*', label=r'$1;0.6$', c='black', linewidth=1)
+    ax4.plot(iterations01, s_l01, '*', label=r'$1;0.75$', c='red', linewidth=1)
+    ax4.plot(iterations02, s_l02, '*', label=r'$1;0.9$', c='blue', linewidth=1)
+    ax4.plot(iterations10, s_l10, '*', label=r'$200;0.6$', c='green', linewidth=1)
+    ax4.plot(iterations11, s_l11, '*', label=r'$200;0.75$', c='violet', linewidth=1)
+    ax4.plot(iterations12, s_l12, '*', label=r'$200;0.9$', c='yellow', linewidth=1)
+    ax4.plot(iterations20, s_l20, '*', label=r'$400;0.6$', c='orange', linewidth=1)
+    ax4.plot(iterations21, s_l21, '*', label=r'$400;0.75$', c='pink', linewidth=1)
+    ax4.plot(iterations22, s_l22, '*', label=r'$400;0.9$', c='brown', linewidth=1)
+
+    fig5, ax5 = plt.subplots()
+    ax5.plot(iterations00, v_s00, '*', label=r'$1;0.6$', c='black', linewidth=1)
+    ax5.plot(iterations01, v_s01, '*', label=r'$1;0.75$', c='red', linewidth=1)
+    ax5.plot(iterations02, v_s02, '*', label=r'$1;0.9$', c='blue', linewidth=1)
+    ax5.plot(iterations10, v_s10, '*', label=r'$200;0.6$', c='green', linewidth=1)
+    ax5.plot(iterations11, v_s11, '*', label=r'$200;0.75$', c='violet', linewidth=1)
+    ax5.plot(iterations12, v_s12, '*', label=r'$200;0.9$', c='yellow', linewidth=1)
+    ax5.plot(iterations20, v_s20, '*', label=r'$400;0.6$', c='orange', linewidth=1)
+    ax5.plot(iterations21, v_s21, '*', label=r'$400;0.75$', c='pink', linewidth=1)
+    ax5.plot(iterations22, v_s22, '*', label=r'$400;0.9$', c='brown', linewidth=1)
+
+    fig6, ax6 = plt.subplots()
+    ax6.plot(iterations00, v_l00, '*', label=r'$1;0.6$', c='black', linewidth=1)
+    ax6.plot(iterations01, v_l01, '*', label=r'$1;0.75$', c='red', linewidth=1)
+    ax6.plot(iterations02, v_l02, '*', label=r'$1;0.9$', c='blue', linewidth=1)
+    ax6.plot(iterations10, v_l10, '*', label=r'$200;0.6$', c='green', linewidth=1)
+    ax6.plot(iterations11, v_l11, '*', label=r'$200;0.75$', c='violet', linewidth=1)
+    ax6.plot(iterations12, v_l12, '*', label=r'$200;0.9$', c='yellow', linewidth=1)
+    ax6.plot(iterations20, v_l20, '*', label=r'$400;0.6$', c='orange', linewidth=1)
+    ax6.plot(iterations21, v_l21, '*', label=r'$400;0.75$', c='pink', linewidth=1)
+    ax6.plot(iterations22, v_l22, '*', label=r'$400;0.9$', c='brown', linewidth=1)
+
+    fig7, ax7 = plt.subplots()
+    ax7.plot(iterations00, v_v_base00, '*', label=r'$1;0.6$', c='black', linewidth=1)
+    ax7.plot(iterations01, v_v_base01, '*', label=r'$1;0.75$', c='red', linewidth=1)
+    ax7.plot(iterations02, v_v_base02, '*', label=r'$1;0.9$', c='blue', linewidth=1)
+    ax7.plot(iterations10, v_v_base10, '*', label=r'$200;0.6$', c='green', linewidth=1)
+    ax7.plot(iterations11, v_v_base11, '*', label=r'$200;0.75$', c='violet', linewidth=1)
+    ax7.plot(iterations12, v_v_base12, '*', label=r'$200;0.9$', c='yellow', linewidth=1)
+    ax7.plot(iterations20, v_v_base20, '*', label=r'$400;0.6$', c='orange', linewidth=1)
+    ax7.plot(iterations21, v_v_base21, '*', label=r'$400;0.75$', c='pink', linewidth=1)
+    ax7.plot(iterations22, v_v_base22, '*', label=r'$400;0.9$', c='brown', linewidth=1)
+
+    fig8, ax8 = plt.subplots()
+    ax8.plot(iterations00, fractal_span00, '*', label=r'$1;0.6$', c='black', linewidth=1)
+    ax8.plot(iterations01, fractal_span01, '*', label=r'$1;0.75$', c='red', linewidth=1)
+    ax8.plot(iterations02, fractal_span02, '*', label=r'$1;0.9$', c='blue', linewidth=1)
+    ax8.plot(iterations10, fractal_span10, '*', label=r'$200;0.6$', c='green', linewidth=1)
+    ax8.plot(iterations11, fractal_span11, '*', label=r'$200;0.75$', c='violet', linewidth=1)
+    ax8.plot(iterations12, fractal_span12, '*', label=r'$200;0.9$', c='yellow', linewidth=1)
+    ax8.plot(iterations20, fractal_span20, '*', label=r'$400;0.6$', c='orange', linewidth=1)
+    ax8.plot(iterations21, fractal_span21, '*', label=r'$400;0.75$', c='pink', linewidth=1)
+    ax8.plot(iterations22, fractal_span22, '*', label=r'$400;0.9$', c='brown', linewidth=1)
+
+    ax1.grid(True)
+    ax2.grid(True)
+    ax3.grid(True)
+    ax4.grid(True)
+    ax5.grid(True)
+    ax6.grid(True)
+    ax7.grid(True)
+    ax8.grid(True)
+
+    ax1.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax1.set(xlabel='Число циклов роста, ед.', ylabel='Длина фрактальной линии, ед.')
+
+    ax2.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax2.set(xlabel='Число циклов роста, ед.', ylabel='Площадь фрактала, ед.')
+
+    ax3.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax3.set(xlabel='Число циклов роста, ед.', ylabel='Объем фрактала, ед.')
+
+    ax4.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax4.set(xlabel='Число циклов роста, ед.', ylabel='Отношение S/L, ед.')
+
+    ax5.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax5.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/S, ед.')
+
+    ax6.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax6.set(xlabel='Число циклов роста, ед.', ylabel='Отношение V/L, ед.')
+
+    ax7.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax7.set(xlabel='Число циклов роста, ед.', ylabel='Отношение 4*V1/V0, ед.')
+
+    ax8.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax8.set(xlabel='Число циклов роста, ед.', ylabel='Размах фрактала, ед.')
+
+    fig1.savefig(f'../metrics/graphics/combined/length.png')
+    fig2.savefig(f'../metrics/graphics/combined/square.png')
+    fig3.savefig(f'../metrics/graphics/combined/value.png')
+    fig4.savefig(f'../metrics/graphics/combined/s_l.png')
+    fig5.savefig(f'../metrics/graphics/combined/v_s.png')
+    fig6.savefig(f'../metrics/graphics/combined/v_l.png')
+    fig7.savefig(f'../metrics/graphics/combined/4v1_v0.png')
+    fig8.savefig(f'../metrics/graphics/combined/fractal_span.png')
+
+    plt.show()
+
+
 if __name__ == '__main__':
     build_classic_one_phase(1000, 7)
     build_one_phase(1000, 7)
     build_several_phases(1000, 7, [1, 200, 400])
     build_new_several_phases(1000, 7)
     build_stochastic(1000, 7, [0.6, 0.75, 0.9])
+    build_combined(1000, 7, [1, 200, 400], [0.6, 0.75, 0.9])
