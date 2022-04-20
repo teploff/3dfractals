@@ -204,6 +204,7 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
     :return:
     """
     print(f'Начало работы вычисления комбинированного метода: {datetime.now()}')
+    print(f'Входные параметры: iter_count = {iter_count}, limit_value = {limit_value}, depth = {depth}, left_limit_rnd = {left_limit_rnd}, delta_iters = {delta_iters}')
 
     # Начальные точки тетраэдра, вектор нормали (с коэффициентами A, B и C), и начальный коэфициент
     # для уменьшения фигуры
@@ -608,31 +609,31 @@ def calculate(iter_count: int, limit_value: float, depth: int, left_limit_rnd: f
     v_l = [volume[i] / line_length[i] for i in range(len(iterations))]
     v_v_base = [4 * volume[i] / volume_base[i] for i in range(len(iterations))]
 
-    with open(f'./metrics/datasets/combined/iterations_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/iterations_limit_value_{limit_value}_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(iterations, f)
 
-    with open(f'./metrics/datasets/combined/length_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/length_limit_value_{limit_value}_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(line_length, f)
 
-    with open(f'./metrics/datasets/combined/square_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/square_limit_value_{limit_value}_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(square, f)
 
-    with open(f'./metrics/datasets/combined/volume_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/volume_limit_value_{limit_value}_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(volume, f)
 
-    with open(f'./metrics/datasets/combined/s_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/s_l_limit_value_{limit_value}_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(s_l, f)
 
-    with open(f'./metrics/datasets/combined/v_s_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/v_s_limit_value_{limit_value}_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(v_s, f)
 
-    with open(f'./metrics/datasets/combined/v_l_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/v_l_limit_value_{limit_value}_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(v_l, f)
 
-    with open(f'./metrics/datasets/combined/v_v_base_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/v_v_limit_value_{limit_value}_base_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(v_v_base, f)
 
-    with open(f'./metrics/datasets/combined/fractal_span_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
+    with open(f'./metrics/datasets/combined/fractal_span_limit_value_{limit_value}_iter_count_{iter_count}_depth_{depth}_delta_{delta_iters}_l_rnd_{left_limit_rnd}.txt', 'wb') as f:
         pickle.dump(fractal_span, f)
 
     print(f'Количество тетраэдров = {len(tetrahedrons)} в комбинированном методе при глубине = {depth}')

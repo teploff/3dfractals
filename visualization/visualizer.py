@@ -8,17 +8,16 @@ from calculations.functional_one_phase import calculate as functional_calc
 from calculations.combined import calculate as combined_calc
 from visualization.entity import Builder
 
-MAX_DEPTH = 7
+# COMMON CONSTANTS
+ITER_COUNT = 2000
+MAX_DEPTH = 5
 LIMIT_VALUE = 2.0
 
-# ONE PHASE CONSTANTS
-ITER_COUNT = 1000
-
 # SEVERAL PHASES CONSTANTS
-ITER_TETRAHEDRON_COUNT = 30
-ITER_TRIANGLE_COUNT = 10
+DELTA_ITERATIONS = 200
 
-ACCURACY = 0.001
+# STOCHASTIC CONSTANTS
+PROBABILITY = 1.0
 
 
 class Game(Ursina):
@@ -34,7 +33,7 @@ class Game(Ursina):
 
         # self.fractal = Builder(classic_one_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=True))
 
-        # self.fractal = Builder(one_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=True))
+        # self.fractal = Builder(one_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=False))
 
         # self.fractal = Builder(several_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 1, only_for_metrics=True))
         # self.fractal = Builder(several_phase_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 200, only_for_metrics=True))
@@ -45,7 +44,7 @@ class Game(Ursina):
 
         # self.fractal = Builder(functional_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, only_for_metrics=True))
 
-        # self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.6, 1, only_for_metrics=True))
+        self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, PROBABILITY, DELTA_ITERATIONS, only_for_metrics=True))
         # self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.75, 1, only_for_metrics=True))
         # self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.9, 1, only_for_metrics=True))
         # self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.6, 200, only_for_metrics=True))
@@ -53,7 +52,7 @@ class Game(Ursina):
         # self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.9, 200, only_for_metrics=True))
         # self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.6, 400, only_for_metrics=True))
         # self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.75, 400, only_for_metrics=True))
-        self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.9, 400, only_for_metrics=True))
+        # self.fractal = Builder(combined_calc(ITER_COUNT, LIMIT_VALUE, MAX_DEPTH, 0.9, 400, only_for_metrics=True))
 
         self.state = 0
 

@@ -497,6 +497,6 @@ def calculate(iter_count: int, limit_value: float, depth: int, only_for_metrics:
     with open(f'./metrics/datasets/one_phase/fractal_span_iter_count_{iter_count}_depth_{depth}.txt', 'wb') as f:
         pickle.dump(fractal_span, f)
 
-    print(f'Количество тетраэдров = {len(tetrahedrons)} в однофазном методе при глубине = {depth}')
+    print(f'Количество тетраэдров = {(len(tetrahedrons) - 1)/4} в однофазном методе при глубине = {depth}')
 
     return ursina_models

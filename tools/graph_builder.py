@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import random
 from typing import List
 
 import matplotlib as mp
@@ -1063,9 +1064,159 @@ def build_combined(iter_count: int, depth: int, deltas: List[int], l_rndms: List
     plt.show()
 
 
+def build_custom_combined(limit_value: List[float], iter_count: List[int], depth: List[int], deltas: List[int], l_rndms: List[float], slice="limit_value"):
+    z = {
+        'iterations': {},
+        'length': {},
+        'square': {},
+        'volume': {},
+        'fractal_span': {}
+    }
+
+    if slice == 'limit_value':
+        i = str(iter_count[0])
+        d = str(depth[0])
+        dt = str(deltas[0])
+        r = str(l_rndms[0])
+
+        for a in limit_value:
+            a = str(a)
+
+            with open(f'../metrics/datasets/combined/iterations_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['iterations'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/length_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['length'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/square_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['square'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/volume_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['volume'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/fractal_span_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['fractal_span'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+    elif slice == 'iter_count':
+        a = str(limit_value[0])
+        d = str(depth[0])
+        dt = str(deltas[0])
+        r = str(l_rndms[0])
+
+        for i in iter_count:
+            i = str(i)
+
+            with open(f'../metrics/datasets/combined/iterations_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['iterations'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/length_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['length'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/square_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['square'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/volume_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['volume'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/fractal_span_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['fractal_span'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+    elif slice == 'depth':
+        a = str(limit_value[0])
+        i = str(iter_count[0])
+        dt = str(deltas[0])
+        r = str(l_rndms[0])
+
+        for d in depth:
+            d = str(d)
+
+            with open(f'../metrics/datasets/combined/iterations_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['iterations'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/length_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['length'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/square_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['square'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/volume_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['volume'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/fractal_span_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['fractal_span'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+    elif slice == 'deltas':
+        a = str(limit_value[0])
+        i = str(iter_count[0])
+        d = str(depth[0])
+        r = str(l_rndms[0])
+
+        for dt in deltas:
+            dt = str(dt)
+
+            with open(f'../metrics/datasets/combined/iterations_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['iterations'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/length_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['length'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/square_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['square'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/volume_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['volume'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/fractal_span_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['fractal_span'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+    elif slice == 'l_rndms':
+        a = str(limit_value[0])
+        i = str(iter_count[0])
+        d = str(depth[0])
+        dt = str(deltas[0])
+
+        for r in l_rndms:
+            r = str(r)
+
+            with open(f'../metrics/datasets/combined/iterations_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['iterations'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/length_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['length'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/square_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['square'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/volume_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['volume'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+            with open(f'../metrics/datasets/combined/fractal_span_limit_value_{a}_iter_count_{i}_depth_{d}_delta_{dt}_l_rnd_{r}.txt', 'rb') as fp:
+                z['fractal_span'][a+'_'+i+'_'+d+'_'+dt+'_'+r] = pickle.load(fp)
+
+    # Строим графики для длин
+    fig1, ax1 = plt.subplots()
+    fig2, ax2 = plt.subplots()
+    fig3, ax3 = plt.subplots()
+    fig4, ax4 = plt.subplots()
+
+
+    for label, iterations in z['iterations'].items():
+        ax1.plot(iterations, z['length'][label], 'o', label=f"{label}", c=(random.random(), random.random(), random.random()), linewidth=1)
+        ax2.plot(iterations, z['square'][label], 'o', label=f"{label}", c=(random.random(), random.random(), random.random()), linewidth=1)
+        ax3.plot(iterations, z['volume'][label], 'o', label=f"{label}", c=(random.random(), random.random(), random.random()), linewidth=1)
+        ax4.plot(iterations, z['fractal_span'][label], 'o', label=f"{label}", c=(random.random(), random.random(), random.random()), linewidth=1)
+
+    ax1.grid(True)
+    ax2.grid(True)
+    ax3.grid(True)
+    ax4.grid(True)
+
+    ax1.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax1.set(xlabel='Число циклов роста, ед.', ylabel='Длина фрактальной линии, ед.')
+
+    ax2.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax2.set(xlabel='Число циклов роста, ед.', ylabel='Площадь фрактала, ед.')
+
+    ax3.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax3.set(xlabel='Число циклов роста, ед.', ylabel='Объем фрактала, ед.')
+
+    ax4.legend(loc='upper left', fancybox=True, framealpha=1, shadow=True, borderpad=1)
+    ax4.set(xlabel='Число циклов роста, ед.', ylabel='Размах фрактала, ед.')
+
+    # fig1.savefig(f'../metrics/graphics/combined/length.png')
+    # # fig2.savefig(f'../metrics/graphics/combined/square.png')
+    # # fig3.savefig(f'../metrics/graphics/combined/value.png')
+    # fig4.savefig(f'../metrics/graphics/combined/s_l.png')
+    # # fig5.savefig(f'../metrics/graphics/combined/v_s.png')
+    # # fig6.savefig(f'../metrics/graphics/combined/v_l.png')
+    # fig7.savefig(f'../metrics/graphics/combined/4v1_v0.png')
+    # # fig8.savefig(f'../metrics/graphics/combined/fractal_span.png')
+    #
+    plt.show()
+
+
 if __name__ == '__main__':
     # build_classic_one_phase(1000, 7)
     # build_one_phase(1000, 7)
-    build_several_phases(1000, 7, [1, 200, 400])
+    # build_several_phases(1000, 7, [1, 200, 400])
     # build_stochastic(1000, 7, [0.6, 0.75, 0.9])
     # build_combined(1000, 7, [1, 200, 400], [0.6, 0.75, 0.9])
+    # build_custom_combined([2.0, 4.0, 8.0, 16.0, 32.0], [100, 500, 1000, 1500, 2000], [5], [200, 400, 600, 800, 1000], [1.0], slice="limit_value")
+    # build_custom_combined([2.0, 4.0, 8.0, 16.0, 32.0], [500, 1000, 1500, 2000], [5], [200, 400, 600, 800, 1000], [1.0], slice="iter_count")
+    build_custom_combined([2.0, 4.0, 8.0, 16.0, 32.0], [100, 500, 1000, 1500, 2000], [5], [200, 400, 600, 800, 1000], [1.0], slice="deltas")
