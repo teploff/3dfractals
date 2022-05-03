@@ -9,12 +9,12 @@ from calculations.combined import calculate as combined_calc
 from visualization.entity import Builder
 
 # COMMON CONSTANTS
-ITER_COUNT = 2000
+ITER_COUNT = 2150
 MAX_DEPTH = 5
 LIMIT_VALUE = 2.0
 
 # SEVERAL PHASES CONSTANTS
-DELTA_ITERATIONS = 200
+DELTA_ITERATIONS = 100
 
 # STOCHASTIC CONSTANTS
 PROBABILITY = 1.0
